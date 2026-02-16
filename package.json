@@ -52,6 +52,8 @@
 		"vitest-browser-svelte": "^2.0.2"
 	},
 	"dependencies": {
-		"@neondatabase/serverless": "^1.0.2"
+		"@neondatabase/serverless": "^1.0.2",
+		"cytoscape": "^3.33.1",
+		"cytoscape-d3-force": "^1.1.4"
 	}
 }
