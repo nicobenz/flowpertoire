@@ -1,0 +1,2 @@
+<h1>Dashboard of your progress</h1>
+<p>Including some fancy stuff like wishlist and sorting by skill level to find next move to practice and improve. Also shows you the average scores for your skills and subskills. So cool.</p>
