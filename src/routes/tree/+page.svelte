@@ -55,6 +55,7 @@
 		const structure = getCurrentGraphStructure();
 		if (!structure) return;
 		selectedNodeId = null;
+		let isDragging = false;
 		const elements = treeToCytoscapeElements(structure, true);
 		const primary = resolveColor('--primary');
 		const gradientBackground = resolveColor('--background');
@@ -110,14 +111,14 @@
 				style: {
 					shape: 'round-diamond',
 					width: 50,
-					height: 50,
+					height: 50
 				}
 			},
 			{
 				selector: 'node[isCategoryNonRoot="true"]',
 				style: {
 					width: 15,
-					height: 15,
+					height: 15
 				}
 			},
 			{
@@ -277,6 +278,11 @@
 			linkDistance: (d: { edgeType?: string }) => (d.edgeType === 'concept' ? 240 : 60),
 			linkStrength: (d: { edgeType?: string }) => (d.edgeType === 'concept' ? 0.25 : 1),
 			velocityDecay: 0.55,
+			alphaTarget: 0,
+			alpha: 0.1,
+			alphaRestart: 0.1,
+			xStrength: 0.05,
+			yStrength: 0.05,
 			// Stronger repulsion spreads siblings; distanceMax so only nearby nodes repel = subtrees stay coherent
 			manyBodyStrength: -18,
 			manyBodyDistanceMax: 220,
@@ -289,14 +295,33 @@
 		} as cytoscape.LayoutOptions);
 		layout.run();
 		// Remove center and x/y forces so only link (edge) attraction and many-body repulsion apply
-		const sim = (layout as { simulation?: { force: (name: string, f: unknown) => unknown } })
-			.simulation;
+		const sim = (layout as {
+			simulation?: {
+				force: (name: string, f: unknown) => unknown;
+				alphaTarget: (v: number) => { restart: () => void };
+			};
+		}).simulation;
 		if (sim) {
 			sim.force('center', null);
 			sim.force('x', null);
 			sim.force('y', null);
 		}
 
+		// Only reheat simulation on actual drag; cool on tap so nodes don't drift when clicked
+		cy.on('grasp', 'node', () => {
+			isDragging = false;
+		});
+		cy.on('drag', 'node', () => {
+			isDragging = true;
+			sim?.alphaTarget(0.3).restart();
+		});
+		cy.on('free', 'node', () => {
+			sim?.alphaTarget(0);
+		});
+		cy.on('tapstart', 'node', () => {
+			isDragging = false;
+			sim?.alphaTarget(0);
+		});
 
 		return () => {
 			layout?.stop();
