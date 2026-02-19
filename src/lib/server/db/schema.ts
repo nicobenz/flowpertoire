@@ -6,8 +6,10 @@ import {
 	boolean,
 	timestamp,
 	primaryKey,
-	pgEnum
+	pgEnum,
+	check
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { relations } from 'drizzle-orm';
 
 // ---- Users (minimal; Auth.js will extend later) ----
@@ -49,23 +51,41 @@ export const categories = pgTable('categories', {
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
 
-// ---- Nodes (DAG vertex; references move and/or category; structure via node_edges) ----
+// ---- Node type: each node is either a move or a category (no hybrid) ----
 
-export const nodes = pgTable('nodes', {
-	id: serial('id').primaryKey(),
-	moveId: integer('move_id').references(() => moves.id, { onDelete: 'cascade' }),
-	categoryId: integer('category_id').references(() => categories.id, {
-		onDelete: 'cascade'
-	}),
-	userId: integer('user_id')
-		.notNull()
-		.references(() => users.id, { onDelete: 'cascade' }),
-	showInGraph: boolean('show_in_graph').notNull().default(true),
-	showInPortfolioList: boolean('show_in_portfolio_list').notNull().default(true),
-	sortOrder: integer('sort_order').notNull().default(0), // sibling order (when rendered under one parent)
-	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
-});
+export const nodeTypeEnum = pgEnum('node_type', ['move', 'category']);
+
+// ---- Nodes (DAG vertex; exactly one of move or category; structure via node_edges) ----
+
+export const nodes = pgTable(
+	'nodes',
+	{
+		id: serial('id').primaryKey(),
+		nodeType: nodeTypeEnum('node_type').notNull(),
+		moveId: integer('move_id').references(() => moves.id, { onDelete: 'cascade' }),
+		categoryId: integer('category_id').references(() => categories.id, {
+			onDelete: 'cascade'
+		}),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		showInGraph: boolean('show_in_graph').notNull().default(true),
+		showInPortfolioList: boolean('show_in_portfolio_list').notNull().default(true),
+		sortOrder: integer('sort_order').notNull().default(0), // sibling order (when rendered under one parent)
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+	},
+	(table) => [
+		// Enforce: move node has moveId set and categoryId null; category node the opposite
+		check(
+			'node_type_move_or_category',
+			sql`(
+        (${table.nodeType} = 'move' AND ${table.moveId} IS NOT NULL AND ${table.categoryId} IS NULL) OR
+        (${table.nodeType} = 'category' AND ${table.moveId} IS NULL AND ${table.categoryId} IS NOT NULL)
+      )`
+		)
+	]
+);
 
 // ---- Node edge type: directed (parent→child) or undirected (same concept) ----
 

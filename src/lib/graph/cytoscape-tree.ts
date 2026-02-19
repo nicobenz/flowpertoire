@@ -3,22 +3,47 @@
  * Node labels come from move title or category label.
  */
 
-import type { TreeData, Node, Move, Category, NodeEdgeType } from '$lib/types';
+import type {
+	TreeData,
+	GraphStructure,
+	Node,
+	Move,
+	Category,
+	NodeEdgeType,
+	ResolvedNode
+} from '$lib/types';
 
 function getLabel(
 	node: Node,
 	moves: { id: number; title: string }[],
 	categories: { id: number; label: string }[]
 ): string {
-	if (node.moveId != null) {
+	if (node.nodeType === 'move') {
 		const m = moves.find((x) => x.id === node.moveId);
 		if (m) return m.title;
-	}
-	if (node.categoryId != null) {
+	} else {
 		const c = categories.find((x) => x.id === node.categoryId);
 		if (c) return c.label;
 	}
 	return `Node ${node.id}`;
+}
+
+/**
+ * Resolve a node with label, and with skillRating (if move) or description (if category).
+ */
+export function resolveNode(data: TreeData, node: Node): ResolvedNode {
+	const movesList = data.moves as Move[];
+	const categoriesList = data.categories as Category[];
+	const label = getLabel(node, movesList, categoriesList);
+	const resolved: ResolvedNode = { ...node, label };
+	if (node.nodeType === 'move') {
+		const move = movesList.find((m) => m.id === node.moveId);
+		if (move) resolved.skillRating = move.skillRating;
+	} else {
+		const category = categoriesList.find((c) => c.id === node.categoryId);
+		if (category) resolved.description = category.description ?? null;
+	}
+	return resolved;
 }
 
 export interface CytoscapeElement {
@@ -30,6 +55,8 @@ export interface CytoscapeElement {
 		target?: string;
 		edgeType?: NodeEdgeType;
 		isRoot?: string;
+		/** True for category nodes that are not roots (small 10×10 shape). */
+		isCategoryNonRoot?: string;
 		/** 0–100, from move skillRating (0→0%, 1→20%, …, 5→100%). Omit for category-only nodes. */
 		fillPercent?: number;
 	};
@@ -38,8 +65,12 @@ export interface CytoscapeElement {
 /**
  * Build Cytoscape elements from DAG data: one node per node, one edge per (parentId, childId).
  * Skips nodes without an id (templates may omit ids).
+ * Accepts GraphStructure (no skillRating) so layout effect doesn't depend on ratings.
  */
-export function treeToCytoscapeElements(data: TreeData): CytoscapeElement[] {
+export function treeToCytoscapeElements(
+	data: TreeData | GraphStructure,
+	skipFillPercent?: boolean
+): CytoscapeElement[] {
 	const { nodes, edges, moves, categories } = data;
 	const elements: CytoscapeElement[] = [];
 	const movesList = moves as Move[];
@@ -55,21 +86,22 @@ export function treeToCytoscapeElements(data: TreeData): CytoscapeElement[] {
 		if (nodeId == null) continue;
 		const id = String(nodeId);
 		const isRoot = !childIds.has(nodeId);
-		// skillRating 0–5 → fill 0%, 20%, 40%, 60%, 80%, 100%; only moves have skillRating
 		let fillPercent: number | undefined;
-		if (node.moveId != null) {
+		if (!skipFillPercent && node.nodeType === 'move') {
 			const move = movesList.find((m) => m.id === node.moveId);
 			if (move) {
 				const r = Math.min(5, Math.max(0, move.skillRating));
 				fillPercent = (r / 5) * 100;
 			}
 		}
+		const isCategoryNonRoot = !isRoot && node.nodeType === 'category';
 		elements.push({
 			group: 'nodes',
 			data: {
 				id,
-				label: getLabel({ ...node, id: nodeId }, movesList, categoriesList),
+				label: getLabel(node as Node, movesList, categoriesList),
 				...(isRoot && { isRoot: 'true' }),
+				...(isCategoryNonRoot && { isCategoryNonRoot: 'true' }),
 				...(fillPercent !== undefined && { fillPercent })
 			}
 		});
@@ -93,4 +125,33 @@ export function treeToCytoscapeElements(data: TreeData): CytoscapeElement[] {
 	}
 
 	return elements;
+}
+
+/**
+ * Update fillPercent on existing Cytoscape nodes from tree data (move skill ratings).
+ * Call this when only skill ratings changed so the graph is not recreated.
+ */
+export function updateNodeFillPercents(
+	cy: {
+		getElementById: (id: string) => {
+			length: number;
+			data: (key: string, value?: number) => unknown;
+			removeData: (key: string) => void;
+		};
+	},
+	data: TreeData
+): void {
+	const movesList = data.moves as Move[];
+	for (const node of data.nodes) {
+		if (node.id == null || node.nodeType !== 'move') continue;
+		const move = movesList.find((m) => m.id === node.moveId);
+		const fillPercent = move
+			? (Math.min(5, Math.max(0, move.skillRating)) / 5) * 100
+			: undefined;
+		const el = cy.getElementById(String(node.id));
+		if (el.length) {
+			if (fillPercent !== undefined) el.data('fillPercent', fillPercent);
+			else el.removeData('fillPercent');
+		}
+	}
 }

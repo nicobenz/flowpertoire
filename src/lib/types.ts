@@ -21,10 +21,9 @@ export interface Category {
 	updatedAt: string;
 }
 
-export interface Node {
+/** Base fields shared by all nodes. */
+interface NodeBase {
 	id: number;
-	moveId: number | null;
-	categoryId: number | null;
 	userId: number;
 	showInGraph: boolean;
 	showInPortfolioList: boolean;
@@ -32,6 +31,37 @@ export interface Node {
 	createdAt: string;
 	updatedAt: string;
 }
+
+/** Node that represents a move (exactly one of moveId or categoryId is set). */
+export interface MoveNode extends NodeBase {
+	nodeType: 'move';
+	moveId: number;
+	categoryId: null;
+}
+
+/** Node that represents a category. */
+export interface CategoryNode extends NodeBase {
+	nodeType: 'category';
+	moveId: null;
+	categoryId: number;
+}
+
+/** A node is either a move or a category—never both (no hybrid). */
+export type Node = MoveNode | CategoryNode;
+
+/**
+ * Node with resolved display fields from linked move/category.
+ * - label: from move.title or category.label
+ * - skillRating: present when node is a move (from move.skillRating)
+ * - description: present when node is a category (from category.description)
+ */
+export type ResolvedNode = Node & {
+	label: string;
+	/** Set when node is a move. */
+	skillRating?: number;
+	/** Set when node is a category. */
+	description?: string | null;
+};
 
 /** Edge type: 'parent' = directed DAG edge; 'concept' = undirected link between nodes of same concept. */
 export type NodeEdgeType = 'parent' | 'concept';
@@ -50,4 +80,12 @@ export interface TreeData {
 	edges: Array<NodeEdge>;
 	moves: Array<Omit<Move, 'id'> & { id?: number }>;
 	categories: Array<Omit<Category, 'id'> & { id?: number }>;
+}
+
+/** Tree shape without move skillRating – for graph layout so rating changes don’t redraw. */
+export interface GraphStructure {
+	nodes: TreeData['nodes'];
+	edges: TreeData['edges'];
+	categories: TreeData['categories'];
+	moves: Array<{ id: number; title: string }>;
 }

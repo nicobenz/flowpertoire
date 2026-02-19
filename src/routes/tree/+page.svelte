@@ -1,15 +1,21 @@
 <script lang="ts">
 	import cytoscape from 'cytoscape';
 	import d3Force from 'cytoscape-d3-force';
-	import { tree } from '$lib/state/state.svelte';
-	import { treeToCytoscapeElements } from '$lib/graph/cytoscape-tree';
-	import { appState } from '$lib/state/state.svelte';
+	import { getCurrentGraphStructure, getCurrentTreeData } from '$lib/state/state.svelte';
+	import {
+		treeToCytoscapeElements,
+		updateNodeFillPercents,
+		resolveNode
+	} from '$lib/graph/cytoscape-tree';
+	import SkillOverview from '$lib/components/nodes/SkillOverview.svelte';
+	import type { Move, Node, ResolvedNode } from '$lib/types';
 
 	cytoscape.use(d3Force);
 
 	let cyContainer: HTMLDivElement | undefined;
 	let cy: cytoscape.Core | undefined;
 	let layout: ReturnType<cytoscape.Core['layout']> | undefined;
+	let selectedNodeId = $state<number | null>(null);
 
 	/** Resolve a CSS variable to rgb() – Cytoscape doesn't accept var(), only concrete colors. */
 	function resolveColor(varName: string): string {
@@ -43,11 +49,13 @@
 		return value || 'sans-serif';
 	}
 
-	// React to tree and selectedIndex: (re)create Cytoscape whenever they change
+	// Depend only on graph structure (no skillRating) so rating changes don’t redraw or deselect
 	$effect(() => {
 		if (!cyContainer) return;
-		const data = tree.default[appState.selectedIndex];
-		const elements = treeToCytoscapeElements(data);
+		const structure = getCurrentGraphStructure();
+		if (!structure) return;
+		selectedNodeId = null;
+		const elements = treeToCytoscapeElements(structure, true);
 		const primary = resolveColor('--primary');
 		const gradientBackground = resolveColor('--background');
 		const primaryFg = resolveColor('--foreground');
@@ -106,6 +114,13 @@
 				}
 			},
 			{
+				selector: 'node[isCategoryNonRoot="true"]',
+				style: {
+					width: 15,
+					height: 15,
+				}
+			},
+			{
 				selector: 'node.dimmed',
 				style: {
 					'background-opacity': 0.25,
@@ -124,11 +139,24 @@
 				selector: 'node:selected',
 				style: {
 					'outline-color': accent,
-					'background-color': accent,
+					'background-color': (node: cytoscape.NodeSingular) => {
+						const p = node.data('fillPercent') as number | undefined;
+						// Only move nodes have fillPercent; category nodes get full accent
+						if (p == null) return accent;
+						return p > 0 ? accent : gradientBackground;
+					},
 					'background-gradient-stop-colors': (node: cytoscape.NodeSingular) => {
-						const p = node.data('fillPercent') ?? 0;
-						if (p <= 0)
-							return [accent, accent, accent, accent];
+						const p = node.data('fillPercent') as number | undefined;
+						// Move with 0%: only outline visible (background fill)
+						if (p != null && p <= 0)
+							return [
+								gradientBackground,
+								gradientBackground,
+								gradientBackground,
+								gradientBackground
+							];
+						// Category: full accent; move with fill: accent gradient
+						if (p == null) return [accent, accent, accent, accent];
 						return [accent, accent, gradientBackground, gradientBackground];
 					}
 				}
@@ -154,12 +182,6 @@
 				selector: 'edge.highlight',
 				style: {
 					'line-opacity': 1
-				}
-			},
-			{
-				selector: 'node:selected',
-				style: {
-					'background-color': accent
 				}
 			},
 			{
@@ -233,8 +255,14 @@
 				cy!.elements().unselect();
 			}
 			node.select();
-			// Dummy: log node data
-			console.log('Node clicked:', { id: node.id(), data: node.data() });
+			selectedNodeId = parseInt(node.id(), 10);
+		});
+
+		cy.on('tap', (evt) => {
+			if (cy && evt.target === cy) {
+				cy.elements().unselect();
+				selectedNodeId = null;
+			}
 		});
 
 		// d3-force: only link force (along edges) attracts; no center/x/y so unconnected nodes don't gravitate together.
@@ -245,12 +273,17 @@
 			fit: false,
 			padding: 30,
 			linkId: (d: { id?: string }) => d.id,
-			linkDistance: 80,
+			// Shorter parent links = children stay near parents; longer concept links = less pull across tree
+			linkDistance: (d: { edgeType?: string }) => (d.edgeType === 'concept' ? 240 : 60),
 			linkStrength: (d: { edgeType?: string }) => (d.edgeType === 'concept' ? 0.25 : 1),
-			velocityDecay: 0.75,
-			manyBodyStrength: -6,
-			collideRadius: 40,
+			velocityDecay: 0.55,
+			// Stronger repulsion spreads siblings; distanceMax so only nearby nodes repel = subtrees stay coherent
+			manyBodyStrength: -18,
+			manyBodyDistanceMax: 220,
+			collideRadius: 48,
 			collideStrength: 1,
+			// Slightly slower decay so layout has more time to settle into a less tangled state
+			alphaDecay: 0.02,
 			ungrabifyWhileSimulating: false,
 			randomize: false
 		} as cytoscape.LayoutOptions);
@@ -264,6 +297,7 @@
 			sim.force('y', null);
 		}
 
+
 		return () => {
 			layout?.stop();
 			cy?.destroy();
@@ -271,10 +305,42 @@
 			layout = undefined;
 		};
 	});
+
+	// When only move skill ratings change, update node fill in place (no full redraw)
+	$effect(() => {
+		if (!cy) return;
+		const data = getCurrentTreeData();
+		if (!data) return;
+		updateNodeFillPercents(cy, data);
+	});
+
+	// Selected node resolved for SkillOverview (top-left overlay)
+	const selectedResolvedNode = $derived.by((): ResolvedNode | undefined => {
+		if (selectedNodeId == null) return undefined;
+		const data = getCurrentTreeData();
+		if (!data?.nodes?.length) return undefined;
+		const node = data.nodes.find((n) => n.id === selectedNodeId);
+		return node && node.id != null ? resolveNode(data, node as Node) : undefined;
+	});
+
+	// The move object from state (for move nodes) – binding to move.skillRating updates state directly
+	const selectedMove = $derived.by(() => {
+		if (selectedNodeId == null) return undefined;
+		const data = getCurrentTreeData();
+		if (!data) return undefined;
+		const node = data.nodes.find((n) => n.id === selectedNodeId);
+		if (node?.nodeType !== 'move') return undefined;
+		return data.moves.find((m) => m.id === node.moveId);
+	});
 </script>
 
 <div class="graph-container">
 	<div bind:this={cyContainer} class="cy"></div>
+	{#if selectedResolvedNode}
+		<div class="skill-overview-overlay">
+			<SkillOverview node={selectedResolvedNode} move={selectedMove as Move | undefined} />
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -285,7 +351,16 @@
 		min-height: 400px;
 	}
 	.cy {
+		position: absolute;
+		inset: 0;
 		width: 100%;
 		height: 100%;
+		z-index: 0;
+	}
+	.skill-overview-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 1;
 	}
 </style>
