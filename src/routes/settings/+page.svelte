@@ -1,1 +1,1 @@
-<h1>Nice bro, settings and stuff</h1>
+<h1>Nice one, settings and stuff</h1>
