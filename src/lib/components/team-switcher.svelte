@@ -52,7 +52,7 @@
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				sideOffset={4}
 			>
-				<DropdownMenu.Label class="text-xs text-muted-foreground">Trees</DropdownMenu.Label>
+				<DropdownMenu.Label class="text-xs text-muted-foreground">Skill Trees</DropdownMenu.Label>
 				{#each teams as team, index (team.name)}
 					<DropdownMenu.Item onSelect={() => changeTeam(team, index)} class="gap-2 p-2">
 						<div class="flex size-6 items-center justify-center rounded-md border">

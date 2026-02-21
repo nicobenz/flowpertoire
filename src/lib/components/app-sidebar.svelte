@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import { projects, teams } from '$lib/nav-config.js';
+	import { teams, sidebarMenuItems } from '$lib/nav-config.js';
 
 	const data = {
 		user: {
@@ -8,13 +8,12 @@
 			avatar: '/avatars/emmy.jpg'
 		},
 		teams,
-		projects
+		sidebarMenuItems
 	};
 </script>
 
 <script lang="ts">
-	import NavMain from './nav-main.svelte';
-	import NavProjects from './nav-projects.svelte';
+	import NavMenu from './nav-menu.svelte';
 	import NavUser from './nav-user.svelte';
 	import TeamSwitcher from './team-switcher.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
@@ -32,7 +31,7 @@
 		<TeamSwitcher teams={data.teams} />
 	</Sidebar.Header>
 	<Sidebar.Content>
-		<NavProjects projects={data.projects} />
+		<NavMenu label="" items={data.sidebarMenuItems} />
 	</Sidebar.Content>
 	<Sidebar.Footer>
 		<NavUser user={data.user} />
