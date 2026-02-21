@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { AspectRatio } from '$lib/components/ui/aspect-ratio/index.js';
+	import * as PointyCard from '$lib/components/ui/pointy-card';
 
 	/** Portrait 4:5, Instagram feed (1080×1350). */
-	const WIDTH = 1080;
-	const HEIGHT = 1350;
+	const INSTAGRAM_RATIO = 1080 / 1350;
 
 	interface Props {
 		exportReady?: (el: HTMLDivElement) => void;
@@ -21,205 +22,73 @@
 	});
 </script>
 
-<div class="preview-wrapper">
-	<div bind:this={cardEl} class="card" role="img" aria-label="Instagram image preview">
-		<div class="content-area">
-			{#if children}
-				{@render children()}
-			{:else}
-				<div class="dashboard">
-					<header class="dashboard-header">
-						<h1 class="dashboard-title">Flowpertoire</h1>
-						<p class="dashboard-subtitle">Skill Progress</p>
-					</header>
-					<div class="dashboard-stats">
-						<div class="stat-card">
-							<span class="stat-value">12</span>
-							<span class="stat-label">Practiced</span>
+<div class="mx-auto w-full max-w-[min(28rem,75vw)] py-6">
+	<AspectRatio
+		bind:ref={cardEl}
+		ratio={INSTAGRAM_RATIO}
+		class="w-full bg-background shadow-xl"
+		role="img"
+		aria-label="Instagram image preview"
+	>
+		<PointyCard.Root class="h-full w-full overflow-hidden rounded-none border-0 shadow-none">
+			<PointyCard.Content class="flex h-full flex-col px-12 pt-6">
+				{#if children}
+					{@render children()}
+				{:else}
+					<div class="box-border flex h-full w-full flex-col gap-10">
+						<header class="shrink-0">
+							<h1 class="m-0 text-[36px] leading-tight font-bold tracking-tight text-foreground">
+								Emmy Example
+							</h1>
+							<p class="text-xl font-medium text-muted-foreground">Skill Progress</p>
+						</header>
+						<div class="flex shrink-0 gap-6">
+							<div class="flex flex-1 flex-col gap-1 rounded-xl border border-border bg-muted p-6">
+								<span class="text-3xl leading-none font-bold text-foreground">12</span>
+								<span class="text-sm font-medium text-muted-foreground">Practiced</span>
+							</div>
+							<div class="flex flex-1 flex-col gap-1 rounded-xl border border-border bg-muted p-6">
+								<span class="text-3xl leading-none font-bold text-foreground">5</span>
+								<span class="text-sm font-medium text-muted-foreground">Started</span>
+							</div>
+							<div class="flex flex-1 flex-col gap-1 rounded-xl border border-border bg-muted p-6">
+								<span class="text-3xl leading-none font-bold text-foreground">4</span>
+								<span class="text-sm font-medium text-muted-foreground">Improved</span>
+							</div>
 						</div>
-						<div class="stat-card">
-							<span class="stat-value">5</span>
-							<span class="stat-label">Started</span>
+						<div class="flex min-h-0 flex-1 flex-col gap-2">
+							<h2 class="m-0 shrink-0 text-lg font-semibold text-foreground">
+								Recent achievements
+							</h2>
+							<ul class="m-0 flex list-none flex-col gap-3 overflow-auto p-0">
+								<li
+									class="flex items-center justify-between gap-4 rounded-[10px] border border-border bg-card px-5 py-4 text-base"
+								>
+									<span class="font-medium text-foreground">3-Beat Weave</span>
+									<span
+										class="shrink-0 rounded-md bg-green-100 px-2.5 py-1 text-[13px] font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-400"
+									>
+										Fully Polished
+									</span>
+								</li>
+								<li
+									class="flex items-center justify-between gap-4 rounded-[10px] border border-border bg-card px-5 py-4 text-base"
+								>
+									<span class="font-medium text-foreground">Spiral Wrap</span>
+									<span
+										class="shrink-0 rounded-md bg-amber-100 px-2.5 py-1 text-[13px] font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+									>
+										Getting Comfortable
+									</span>
+								</li>
+							</ul>
 						</div>
-						<div class="stat-card">
-							<span class="stat-value">4</span>
-							<span class="stat-label">Polished</span>
-						</div>
+						<footer class="mt-0 shrink-0 text-right text-sm text-muted-foreground">
+							flowpertoire.app
+						</footer>
 					</div>
-					<div class="dashboard-section">
-						<h2 class="section-title">Recent achievements</h2>
-						<ul class="achievement-list">
-							<li class="achievement-item">
-								<span class="achievement-name">Spiral Wrap</span>
-								<span class="achievement-badge">Confident</span>
-							</li>
-							<li class="achievement-item">
-								<span class="achievement-name">3-Beat Weave</span>
-								<span class="achievement-badge">Polished</span>
-							</li>
-						</ul>
-					</div>
-				</div>
-			{/if}
-		</div>
-	</div>
+				{/if}
+			</PointyCard.Content>
+		</PointyCard.Root>
+	</AspectRatio>
 </div>
-
-<style>
-	.preview-wrapper {
-		width: 100%;
-		max-width: min(28rem, 75vw);
-		margin: 0 auto;
-		padding: 1.5rem 0;
-	}
-
-	.card {
-		position: relative;
-		width: 1080px;
-		height: 1350px;
-		max-width: 100%;
-		height: auto;
-		aspect-ratio: 1080 / 1350;
-		background: var(--color-background, #fff);
-		box-sizing: border-box;
-		box-shadow:
-			0 4px 6px -1px rgb(0 0 0 / 0.1),
-			0 2px 4px -2px rgb(0 0 0 / 0.1),
-			0 25px 50px -12px rgb(0 0 0 / 0.25);
-	}
-
-	.content-area {
-		position: absolute;
-		inset: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.dashboard {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-		padding: 56px 48px;
-		box-sizing: border-box;
-		gap: 40px;
-	}
-
-	.dashboard-header {
-		flex-shrink: 0;
-	}
-
-	.dashboard-title {
-		margin: 0;
-		font-size: 36px;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		color: #0f172a;
-		line-height: 1.2;
-	}
-
-	.dashboard-subtitle {
-		margin: 8px 0 0;
-		font-size: 20px;
-		font-weight: 500;
-		color: #64748b;
-	}
-
-	.dashboard-stats {
-		display: flex;
-		gap: 24px;
-		flex-shrink: 0;
-	}
-
-	.stat-card {
-		flex: 1;
-		background: #f8fafc;
-		border: 1px solid #e2e8f0;
-		border-radius: 12px;
-		padding: 24px;
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-	}
-
-	.stat-value {
-		font-size: 32px;
-		font-weight: 700;
-		color: #0f172a;
-		line-height: 1;
-	}
-
-	.stat-label {
-		font-size: 14px;
-		color: #64748b;
-		font-weight: 500;
-	}
-
-	.dashboard-section {
-		flex: 1;
-		min-height: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-	}
-
-	.section-title {
-		margin: 0;
-		font-size: 18px;
-		font-weight: 600;
-		color: #334155;
-		flex-shrink: 0;
-	}
-
-	.achievement-list {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-		overflow: auto;
-	}
-
-	.achievement-item {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 16px;
-		padding: 16px 20px;
-		background: #fff;
-		border: 1px solid #e2e8f0;
-		border-radius: 10px;
-		font-size: 16px;
-	}
-
-	.achievement-name {
-		font-weight: 500;
-		color: #0f172a;
-	}
-
-	.achievement-badge {
-		font-size: 13px;
-		font-weight: 600;
-		padding: 4px 10px;
-		border-radius: 6px;
-		flex-shrink: 0;
-	}
-
-	.achievement-item:first-child .achievement-badge,
-	.achievement-item:nth-child(2) .achievement-badge {
-		background: #dcfce7;
-		color: #166534;
-	}
-
-	.achievement-item:nth-child(3) .achievement-badge {
-		background: #fef3c7;
-		color: #92400e;
-	}
-
-	.achievement-item:nth-child(4) .achievement-badge {
-		background: #f1f5f9;
-		color: #64748b;
-	}
-</style>
