@@ -2,6 +2,17 @@ import type { TreeData, GraphStructure } from '$lib/types';
 
 const sampleDate = '2025-01-01T00:00:00.000Z';
 
+export const user = $state({
+	firstName: 'Emmy',
+	lastName: 'Example',
+	email: 'emmy@example.com',
+	avatar: '/avatars/ava.jpg',
+	socials: {
+		insta: '@emmy.examplissimo',
+		tiktok: 'whatever'
+	}
+});
+
 export const celebrateSettings = $state({
 	timeSelection: { label: 'All time', value: 'all-time' },
 	timeOptions: [
