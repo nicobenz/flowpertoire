@@ -54,6 +54,7 @@ export type Node = MoveNode | CategoryNode;
  * - label: from move.title or category.label
  * - skillRating: present when node is a move (from move.skillRating)
  * - description: present when node is a category (from category.description)
+ * - aggregateSkillRating: present when node is a category (average 0–5 of moves in subtree)
  */
 export type ResolvedNode = Node & {
 	label: string;
@@ -61,6 +62,8 @@ export type ResolvedNode = Node & {
 	skillRating?: number;
 	/** Set when node is a category. */
 	description?: string | null;
+	/** Set when node is a category: average skill rating (0–5) of all moves in subtree. */
+	aggregateSkillRating?: number;
 };
 
 /** Edge type: 'parent' = directed DAG edge; 'concept' = undirected link between nodes of same concept. */

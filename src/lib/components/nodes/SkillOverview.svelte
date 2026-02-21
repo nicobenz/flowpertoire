@@ -53,7 +53,15 @@
 				</div>
 			</RadioGroup.Root>
         {:else}
-            Skill rating aggregate from subtree: WIP
+			<Label class="mb-2">Current Skill Rating</Label>
+			<p class="text-muted-foreground">
+				{node.aggregateSkillRating != null
+					? (() => {
+							const r = Math.round(node.aggregateSkillRating! * 10) / 10;
+							return Math.round(r * 10) % 10 === 0 ? String(Math.round(r)) : r.toFixed(1);
+						})()
+					: '—'}
+			</p>
 		{/if}
         
 	</Card.Content>

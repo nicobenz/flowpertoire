@@ -333,7 +333,7 @@ function getLabel(
 }
 
 /**
- * Resolve a node with label, and with skillRating (if move) or description (if category).
+ * Resolve a node with label, and with skillRating (if move) or description + aggregateSkillRating (if category).
  */
 export function resolveNode(data: TreeData, node: Node): ResolvedNode {
 	const movesList = data.moves as Move[];
@@ -346,6 +346,14 @@ export function resolveNode(data: TreeData, node: Node): ResolvedNode {
 	} else {
 		const category = categoriesList.find((c) => c.id === node.categoryId);
 		if (category) resolved.description = category.description ?? null;
+		const childIdsByParent = getChildIdsByParent(data.edges);
+		const fillPercent = categoryFillFromSubtree(
+			node.id!,
+			data.nodes,
+			childIdsByParent,
+			movesList
+		);
+		resolved.aggregateSkillRating = (fillPercent / 100) * 5;
 	}
 	return resolved;
 }
