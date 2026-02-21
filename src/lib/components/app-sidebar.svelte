@@ -1,12 +1,9 @@
 <script lang="ts" module>
 	import { teams, sidebarMenuItems } from '$lib/nav-config.js';
+	import { user } from '$lib/state/state.svelte';
 
 	const data = {
-		user: {
-			name: 'Emmy Example',
-			email: 'emmy@example.com',
-			avatar: '/avatars/emmy.jpg'
-		},
+		user,
 		teams,
 		sidebarMenuItems
 	};
