@@ -6,7 +6,7 @@ export const user = $state({
 	firstName: 'Emmy',
 	lastName: 'Example',
 	email: 'emmy@example.com',
-	avatar: '/avatars/ava.jpg',
+	avatar: '/avatars/ava.png',
 	socials: {
 		insta: '@emmy.examplissimo',
 		tiktok: 'whatever'

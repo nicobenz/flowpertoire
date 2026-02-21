@@ -8,7 +8,7 @@
 
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
-	let { children } = $props();
+	let { data, children } = $props();
 
 	const currentLabel = $derived(getProjectLabel($page.url.pathname));
 </script>
@@ -18,7 +18,7 @@
 </svelte:head>
 
 <Sidebar.Provider>
-	<AppSidebar />
+	<AppSidebar trees={data.trees} />
 	<Sidebar.Inset>
 		<header
 			class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"

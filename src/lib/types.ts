@@ -85,6 +85,12 @@ export interface TreeData {
 	categories: Array<Omit<Category, 'id'> & { id?: number }>;
 }
 
+/** Summary of a root tree for the switcher (id = node id, name = category label). */
+export interface TreeSummary {
+	id: number;
+	name: string;
+}
+
 /** Tree shape without move skillRating – for graph layout so rating changes don’t redraw. */
 export interface GraphStructure {
 	nodes: TreeData['nodes'];
