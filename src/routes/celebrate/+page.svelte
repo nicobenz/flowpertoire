@@ -2,6 +2,8 @@
 	import { toPng } from 'html-to-image';
 	import ImageGenerator from '$lib/components/celebrate/ImageGenerator.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import * as Select from '$lib/components/ui/select/index.js';
+	import { celebrateSettings } from '$lib/state/state.svelte';
 
 	let exportTarget = $state<HTMLDivElement | null>(null);
 	let downloading = $state(false);
@@ -26,111 +28,64 @@
 			downloading = false;
 		}
 	}
+
+	const timeTriggerContent = $derived(
+		celebrateSettings.timeOptions.find((f) => f.value === celebrateSettings.timeSelection.value)
+			?.label
+	);
+
+	const styleTriggerContent = $derived(
+		celebrateSettings.styleOptions.find((f) => f.value === celebrateSettings.styleSelection.value)
+			?.label
+	);
 </script>
 
-<div class="celebrate-page">
-	<aside class="settings-panel">
-		<h2 class="settings-title">Settings</h2>
-		<div class="settings-list">
-			<div class="setting-row">
-				<label for="time-range">Time range</label>
-				<select id="time-range" class="setting-input">
-					<option>All time</option>
-					<option>Last 3 months</option>
-					<option>Last 6 months</option>
-				</select>
+<div class="m-0 flex min-h-0 max-w-3xl flex-col gap-8 p-8 pr-8 pl-0 md:flex-row">
+	<aside class="flex w-fit shrink-0 flex-col gap-6">
+		<h2 class="m-0 text-lg font-semibold text-foreground">Configuration</h2>
+		<div class="flex flex-col gap-4">
+			<div class="flex flex-col gap-1.5">
+				<Select.Root type="single" bind:value={celebrateSettings.timeSelection.value}>
+					<Select.Trigger class="w-[180px]">
+						{timeTriggerContent}
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Group>
+							<Select.Label>Time ranges</Select.Label>
+							{#each celebrateSettings.timeOptions as time (time.value)}
+								<Select.Item value={time.value} label={time.label}>
+									{time.label}
+								</Select.Item>
+							{/each}
+						</Select.Group>
+					</Select.Content>
+				</Select.Root>
 			</div>
-			<div class="setting-row">
-				<label for="style">Style</label>
-				<select id="style" class="setting-input">
-					<option>Style 1</option>
-					<option>Style 2</option>
-				</select>
+			<div class="flex flex-col gap-1.5">
+				<Select.Root type="single" bind:value={celebrateSettings.styleSelection.value}>
+					<Select.Trigger class="w-[180px]">
+						{styleTriggerContent}
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Group>
+							<Select.Label>Style</Select.Label>
+							{#each celebrateSettings.styleOptions as style (style.value)}
+								<Select.Item value={style.value} label={style.label}>
+									{style.label}
+								</Select.Item>
+							{/each}
+						</Select.Group>
+					</Select.Content>
+				</Select.Root>
 			</div>
 		</div>
-		<div class="download-wrap">
-			<Button
-				onclick={handleDownload}
-				disabled={!exportTarget || downloading}
-			>
+		<div class="mt-auto min-w-40">
+			<Button onclick={handleDownload} disabled={!exportTarget || downloading}>
 				{downloading ? 'Preparing…' : 'Download'}
 			</Button>
 		</div>
 	</aside>
-	<div class="preview-panel">
+	<div class="flex min-w-0 flex-1 items-start justify-center">
 		<ImageGenerator exportReady={onExportReady} />
 	</div>
 </div>
-
-<style>
-	.celebrate-page {
-		display: flex;
-		flex-direction: row;
-		gap: 2rem;
-		padding: 2rem 2rem 2rem 0;
-		min-height: 0;
-		max-width: 56rem;
-		margin: 0;
-	}
-
-	@media (max-width: 768px) {
-		.celebrate-page {
-			flex-direction: column;
-		}
-	}
-
-	.settings-panel {
-		flex-shrink: 0;
-		width: 16rem;
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	.settings-title {
-		margin: 0;
-		font-size: 1.125rem;
-		font-weight: 600;
-		color: var(--color-foreground, #0f172a);
-	}
-
-	.settings-list {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.setting-row {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-	}
-
-	.setting-row label {
-		font-size: 0.875rem;
-		font-weight: 500;
-		color: var(--color-muted-foreground, #64748b);
-	}
-
-	.setting-input {
-		padding: 0.5rem 0.75rem;
-		font-size: 0.875rem;
-		border: 1px solid var(--color-border, #e2e8f0);
-		border-radius: 6px;
-		background: var(--color-background, #fff);
-		color: var(--color-foreground, #0f172a);
-	}
-
-	.download-wrap {
-		margin-top: auto;
-		min-width: 10rem;
-	}
-
-	.preview-panel {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		align-items: flex-start;
-		justify-content: center;
-	}
-</style>

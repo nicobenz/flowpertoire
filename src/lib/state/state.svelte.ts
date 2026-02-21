@@ -2,6 +2,21 @@ import type { TreeData, GraphStructure } from '$lib/types';
 
 const sampleDate = '2025-01-01T00:00:00.000Z';
 
+export const celebrateSettings = $state({
+	timeSelection: { label: 'All time', value: 'all-time' },
+	timeOptions: [
+		{ label: 'All time', value: 'all-time' },
+		{ label: '6 Months', value: '6-months' },
+		{ label: '3 Months', value: '3-months' }
+	],
+	styleSelection: { label: 'Style 1', value: 'style-1' },
+	styleOptions: [
+		{ label: 'Style 1', value: 'style-1' },
+		{ label: 'Style 2', value: 'style-2' },
+		{ label: 'Style 3', value: 'style-3' }
+	]
+});
+
 const defaultTreeData = $state<{ trees: TreeData[] }>({
 	trees: [
 		{
@@ -630,55 +645,422 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 		},
 		{
 			categories: [
-				{ id: 1, conceptId: null, label: 'Dance', description: 'Dancy stuff', createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 2, conceptId: null, label: 'Salsa', description: 'Partner dance', createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 3, conceptId: null, label: 'Pole dance', description: 'Pole fitness & dance', createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 4, conceptId: null, label: 'Salsa Rueda', description: 'Circle salsa', createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 5, conceptId: null, label: 'Salsa Cubana', description: 'Cuban style', createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 7, conceptId: null, label: 'Flips', description: 'Pole flips', createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 8, conceptId: null, label: 'Climbs', description: 'Pole climbs', createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 9, conceptId: null, label: 'Inverts', description: 'Inverted poses', createdAt: sampleDate, updatedAt: sampleDate }
+				{
+					id: 1,
+					conceptId: null,
+					label: 'Dance',
+					description: 'Dancy stuff',
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 2,
+					conceptId: null,
+					label: 'Salsa',
+					description: 'Partner dance',
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 3,
+					conceptId: null,
+					label: 'Pole dance',
+					description: 'Pole fitness & dance',
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 4,
+					conceptId: null,
+					label: 'Salsa Rueda',
+					description: 'Circle salsa',
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 5,
+					conceptId: null,
+					label: 'Salsa Cubana',
+					description: 'Cuban style',
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 7,
+					conceptId: null,
+					label: 'Flips',
+					description: 'Pole flips',
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 8,
+					conceptId: null,
+					label: 'Climbs',
+					description: 'Pole climbs',
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 9,
+					conceptId: null,
+					label: 'Inverts',
+					description: 'Inverted poses',
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				}
 			],
 			moves: [
-				{ id: 1, title: 'Dame ona', skillRating: 5, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 2, title: 'Enchufa', skillRating: 5, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 3, title: 'Vacila', skillRating: 0, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 4, title: 'Kentucky', skillRating: 1, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 5, title: 'Sombrero', skillRating: 5, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 6, title: 'Guapea', skillRating: 0, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 7, title: 'Dile que no', skillRating: 5, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 8, title: 'Enchufla', skillRating: 5, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 9, title: 'Prima', skillRating: 2, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 10, title: 'Tresillo', skillRating: 0, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 16, title: 'Ayesha', skillRating: 1, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 17, title: 'Handspring', skillRating: 1, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 18, title: 'Shoulder mount', skillRating: 2, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 19, title: 'Flip to invert', skillRating: 2, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 20, title: 'Marley', skillRating: 0, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 21, title: 'Basic climb', skillRating: 4, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 22, title: 'Russian climb', skillRating: 3, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 23, title: 'Front climb', skillRating: 1, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 24, title: 'Side climb', skillRating: 1, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 26, title: 'Inverted crucifix', skillRating: 1, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 27, title: 'Gemini', skillRating: 1, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 28, title: 'Jamilla', skillRating: 1, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 29, title: 'Allegra', skillRating: 1, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 30, title: 'Handstand', skillRating: 0, firstLandedAt: null, createdAt: sampleDate, updatedAt: sampleDate }
+				{
+					id: 1,
+					title: 'Dame ona',
+					skillRating: 5,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 2,
+					title: 'Enchufa',
+					skillRating: 5,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 3,
+					title: 'Vacila',
+					skillRating: 0,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 4,
+					title: 'Kentucky',
+					skillRating: 1,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 5,
+					title: 'Sombrero',
+					skillRating: 5,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 6,
+					title: 'Guapea',
+					skillRating: 0,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 7,
+					title: 'Dile que no',
+					skillRating: 5,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 8,
+					title: 'Enchufla',
+					skillRating: 5,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 9,
+					title: 'Prima',
+					skillRating: 2,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 10,
+					title: 'Tresillo',
+					skillRating: 0,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 16,
+					title: 'Ayesha',
+					skillRating: 1,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 17,
+					title: 'Handspring',
+					skillRating: 1,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 18,
+					title: 'Shoulder mount',
+					skillRating: 2,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 19,
+					title: 'Flip to invert',
+					skillRating: 2,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 20,
+					title: 'Marley',
+					skillRating: 0,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 21,
+					title: 'Basic climb',
+					skillRating: 4,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 22,
+					title: 'Russian climb',
+					skillRating: 3,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 23,
+					title: 'Front climb',
+					skillRating: 1,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 24,
+					title: 'Side climb',
+					skillRating: 1,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 26,
+					title: 'Inverted crucifix',
+					skillRating: 1,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 27,
+					title: 'Gemini',
+					skillRating: 1,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 28,
+					title: 'Jamilla',
+					skillRating: 1,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 29,
+					title: 'Allegra',
+					skillRating: 1,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 30,
+					title: 'Handstand',
+					skillRating: 0,
+					firstLandedAt: null,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				}
 			],
 			nodes: [
-				{ id: 1, nodeType: 'category', moveId: null, categoryId: 1, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: 0, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 2, nodeType: 'category', moveId: null, categoryId: 2, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: 0, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 3, nodeType: 'category', moveId: null, categoryId: 3, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: 1, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 4, nodeType: 'category', moveId: null, categoryId: 4, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: 0, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 5, nodeType: 'category', moveId: null, categoryId: 5, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: 1, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 7, nodeType: 'category', moveId: null, categoryId: 7, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: 0, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 8, nodeType: 'category', moveId: null, categoryId: 8, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: 1, createdAt: sampleDate, updatedAt: sampleDate },
-				{ id: 9, nodeType: 'category', moveId: null, categoryId: 9, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: 2, createdAt: sampleDate, updatedAt: sampleDate },
-				...Array.from({ length: 5 }, (_, i) => ({ id: 11 + i, nodeType: 'move' as const, moveId: 1 + i, categoryId: null, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: i, createdAt: sampleDate, updatedAt: sampleDate })),
-				...Array.from({ length: 5 }, (_, i) => ({ id: 16 + i, nodeType: 'move' as const, moveId: 6 + i, categoryId: null, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: i, createdAt: sampleDate, updatedAt: sampleDate })),
-				...Array.from({ length: 5 }, (_, i) => ({ id: 26 + i, nodeType: 'move' as const, moveId: 16 + i, categoryId: null, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: i, createdAt: sampleDate, updatedAt: sampleDate })),
-				...Array.from({ length: 5 }, (_, i) => ({ id: 31 + i, nodeType: 'move' as const, moveId: 21 + i, categoryId: null, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: i, createdAt: sampleDate, updatedAt: sampleDate })),
-				...Array.from({ length: 5 }, (_, i) => ({ id: 36 + i, nodeType: 'move' as const, moveId: 26 + i, categoryId: null, userId: 1, showInGraph: true, showInPortfolioList: true, sortOrder: i, createdAt: sampleDate, updatedAt: sampleDate }))
+				{
+					id: 1,
+					nodeType: 'category',
+					moveId: null,
+					categoryId: 1,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: 0,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 2,
+					nodeType: 'category',
+					moveId: null,
+					categoryId: 2,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: 0,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 3,
+					nodeType: 'category',
+					moveId: null,
+					categoryId: 3,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: 1,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 4,
+					nodeType: 'category',
+					moveId: null,
+					categoryId: 4,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: 0,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 5,
+					nodeType: 'category',
+					moveId: null,
+					categoryId: 5,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: 1,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 7,
+					nodeType: 'category',
+					moveId: null,
+					categoryId: 7,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: 0,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 8,
+					nodeType: 'category',
+					moveId: null,
+					categoryId: 8,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: 1,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				{
+					id: 9,
+					nodeType: 'category',
+					moveId: null,
+					categoryId: 9,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: 2,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				},
+				...Array.from({ length: 5 }, (_, i) => ({
+					id: 11 + i,
+					nodeType: 'move' as const,
+					moveId: 1 + i,
+					categoryId: null,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: i,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				})),
+				...Array.from({ length: 5 }, (_, i) => ({
+					id: 16 + i,
+					nodeType: 'move' as const,
+					moveId: 6 + i,
+					categoryId: null,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: i,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				})),
+				...Array.from({ length: 5 }, (_, i) => ({
+					id: 26 + i,
+					nodeType: 'move' as const,
+					moveId: 16 + i,
+					categoryId: null,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: i,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				})),
+				...Array.from({ length: 5 }, (_, i) => ({
+					id: 31 + i,
+					nodeType: 'move' as const,
+					moveId: 21 + i,
+					categoryId: null,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: i,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				})),
+				...Array.from({ length: 5 }, (_, i) => ({
+					id: 36 + i,
+					nodeType: 'move' as const,
+					moveId: 26 + i,
+					categoryId: null,
+					userId: 1,
+					showInGraph: true,
+					showInPortfolioList: true,
+					sortOrder: i,
+					createdAt: sampleDate,
+					updatedAt: sampleDate
+				}))
 			],
 			edges: [
 				{ parentId: 1, childId: 2, type: 'parent' },
