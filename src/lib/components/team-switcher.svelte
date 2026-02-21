@@ -12,10 +12,9 @@
 	let { teams }: { teams: { name: string; logo: any; plan: string }[] } = $props();
 	const sidebar = useSidebar();
 
-	let activeTeam = $state(teams[0]);
+	const activeTeam = $derived(teams[appState.selectedIndex] ?? teams[0]);
 
-	function changeTeam(name: any, index: number) {
-		activeTeam = name;
+	function changeTeam(_name: unknown, index: number) {
 		appState.selectedIndex = index;
 		goto('/tree');
 	}
