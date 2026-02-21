@@ -1,0 +1,14 @@
+---
+description: Enforces the use of Tailwind CSS for styling project-wide. All component styling should use Tailwind utility classes for consistency and maintainability.
+globs: **/*.svelte
+---
+
+- Styling (project-wide)
+  - Use Tailwind CSS for all styling. Prefer utility classes in the markup over scoped CSS or inline styles.
+  - For color, use the design tokens from layout.css via Tailwind: `text-foreground`, `bg-background`, `bg-muted`, `text-muted-foreground`, `border-border`, `bg-card`, etc. Use raw hex or non-theme colors only when no token fits.
+  - Avoid adding custom CSS in `<style>` blocks unless necessary (e.g. a layout that is much clearer with a small `@apply` block, or third-party integration). When you do, prefer Tailwind's `@apply` with utility names.
+  - Use dynamic classes with template literals when conditional:
+    ```svelte
+    <div class={`p-4 ${isActive ? 'opacity-100' : 'opacity-50'}`}></div>
+    ```
+  - For one-off values (e.g. `min(28rem, 75vw)`), use arbitrary values: `max-w-[min(28rem,75vw)]`.
