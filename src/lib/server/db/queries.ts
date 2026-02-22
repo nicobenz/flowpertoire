@@ -319,3 +319,24 @@ export async function addChildSkill(
 	});
 	return node.id;
 }
+
+/**
+ * Updates a skill's rating (0–5). Verifies the skill is owned by the user via a node.
+ */
+export async function updateSkillRating(
+	userId: number,
+	skillId: number,
+	rating: number
+): Promise<void> {
+	const clamped = Math.min(5, Math.max(0, Math.round(rating)));
+	const [node] = await db
+		.select()
+		.from(nodes)
+		.where(and(eq(nodes.skillId, skillId), eq(nodes.userId, userId)))
+		.limit(1);
+	if (!node) throw new Error('Skill not found or you do not own it');
+	await db
+		.update(skills)
+		.set({ skillRating: clamped, updatedAt: new Date() })
+		.where(eq(skills.id, skillId));
+}

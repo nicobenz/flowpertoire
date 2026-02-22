@@ -3,7 +3,8 @@ import {
 	getRootTreeIdBySlug,
 	getTreeData,
 	addChildGroup,
-	addChildSkill
+	addChildSkill,
+	updateSkillRating
 } from '$lib/server/db/queries';
 import { DEFAULT_USER_ID } from '$lib/server/db/default-user';
 import type { GraphStructure } from '$lib/types';
@@ -69,6 +70,23 @@ export const actions = {
 		} catch (err) {
 			const message = err instanceof Error ? err.message : 'Failed to add skill';
 			return fail(500, { addSkill: { error: message } });
+		}
+	},
+	updateSkillRating: async ({ request }) => {
+		const formData = await request.formData();
+		const skillIdRaw = formData.get('skillId');
+		const skillRatingRaw = formData.get('skillRating');
+		const skillId = typeof skillIdRaw === 'string' ? parseInt(skillIdRaw, 10) : NaN;
+		const rating = typeof skillRatingRaw === 'string' ? parseInt(skillRatingRaw, 10) : NaN;
+		if (Number.isNaN(skillId) || Number.isNaN(rating) || rating < 0 || rating > 5) {
+			return fail(400, { updateSkillRating: { error: 'Valid skillId and skillRating (0–5) required' } });
+		}
+		try {
+			await updateSkillRating(DEFAULT_USER_ID, skillId, rating);
+			return { updateSkillRating: { success: true } };
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Failed to update skill rating';
+			return fail(500, { updateSkillRating: { error: message } });
 		}
 	}
 };

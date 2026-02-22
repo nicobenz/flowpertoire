@@ -59,6 +59,26 @@
 	const treeData = $derived(data.treeData);
 	const graphStructure = $derived(data.graphStructure);
 
+	// Optimistic rating overrides: drive graph fill from UI without refetch (no full redraw)
+	let ratingOverrides = $state<Record<number, number>>({});
+	const treeDataForFill = $derived.by(() => {
+		if (!treeData) return null;
+		const overrides = ratingOverrides;
+		return {
+			...treeData,
+			skills: treeData.skills.map((s) => {
+				if (s.id != null && s.id in overrides) {
+					return { ...s, skillRating: overrides[s.id] };
+				}
+				return s;
+			})
+		};
+	});
+
+	function onRatingChange(skillId: number, rating: number): void {
+		ratingOverrides = { ...ratingOverrides, [skillId]: rating };
+	}
+
 	// Create/destroy graph when container is available; update selection via callback
 	$effect(() => {
 		if (!cyContainer) return;
@@ -83,19 +103,21 @@
 		graph.setStructure(graphStructure);
 	});
 
-	// When only skill ratings change, update node fill in place (no full redraw)
+	// When skill ratings change (treeData or optimistic overrides), update node fill in place (no full redraw)
 	$effect(() => {
 		if (!graph) return;
-		if (!treeData) return;
-		graph.updateFillPercents(treeData);
+		if (!treeDataForFill) return;
+		graph.updateFillPercents(treeDataForFill);
 	});
 
-	// Selected node resolved for SkillOverview (top-left overlay)
+	// Selected node resolved for SkillOverview (reactive to rating overrides for aggregate)
 	const selectedResolvedNode = $derived.by((): ResolvedNode | undefined => {
 		if (selectedNodeId == null) return undefined;
 		if (!treeData?.nodes?.length) return undefined;
 		const node = treeData.nodes.find((n) => n.id === selectedNodeId);
-		return node && node.id != null ? resolveNode(treeData, node as Node) : undefined;
+		if (!node || node.id == null) return undefined;
+		const dataForResolve = treeDataForFill ?? treeData;
+		return resolveNode(dataForResolve, node as Node);
 	});
 
 	const selectedSkill = $derived.by(() => {
@@ -104,6 +126,13 @@
 		const node = treeData.nodes.find((n) => n.id === selectedNodeId);
 		if (node?.nodeType !== 'skill') return undefined;
 		return treeData.skills.find((s) => s.id === node.skillId);
+	});
+
+	// Effective rating for selected skill (override or DB) so radio and fill stay in sync
+	const effectiveSkillRating = $derived.by(() => {
+		const s = selectedSkill;
+		if (!s || s.id == null) return undefined;
+		return s.id in ratingOverrides ? ratingOverrides[s.id] : s.skillRating;
 	});
 </script>
 
@@ -114,7 +143,9 @@
 			<SkillOverview
 				node={selectedResolvedNode}
 				skill={selectedSkill as Skill | undefined}
+				effectiveRating={effectiveSkillRating}
 				treeName={data.treeName}
+				onRatingChange={onRatingChange}
 			/>
 		</div>
 	{/if}
