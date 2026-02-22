@@ -2,10 +2,10 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as RadioGroup from '$lib/components/ui/radio-group/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import type { ResolvedNode } from '$lib/types';
-	import type { Move } from '$lib/types';
+	import type { ResolvedNode, Skill } from '$lib/types';
+	import AttachPopover from './AttachPopover.svelte';
 
-	let { node, move }: { node: ResolvedNode; move?: Move } = $props();
+	let { node, skill, treeName }: { node: ResolvedNode; skill?: Skill; treeName?: string } = $props();
 </script>
 
 <Card.Root>
@@ -16,13 +16,13 @@
 		{/if}
 	</Card.Header>
 	<Card.Content>
-		{#if move != null}
+		{#if skill != null}
 			<Label for="skill-rating" class="mb-2">Skill Rating</Label>
 			<RadioGroup.Root
 				bind:value={
-					() => String(move.skillRating),
+					() => String(skill.skillRating),
 					(v) => {
-						move.skillRating = Math.min(5, Math.max(0, Number(v)));
+						skill.skillRating = Math.min(5, Math.max(0, Number(v)));
 					}
 				}
 				id="skill-rating"
@@ -52,9 +52,9 @@
 					<Label for="r5">Fully polished</Label>
 				</div>
 			</RadioGroup.Root>
-        {:else}
-			<Label class="mb-2">Current Skill Rating</Label>
-			<p class="text-muted-foreground">
+		{:else}
+			<Label for="skill-aggregate" class="mb-2">Skill Aggregate</Label>
+			<p class="text-muted-foreground" id="skill-aggregate">
 				{node.aggregateSkillRating != null
 					? (() => {
 							const r = Math.round(node.aggregateSkillRating! * 10) / 10;
@@ -63,6 +63,8 @@
 					: '—'}
 			</p>
 		{/if}
-        
 	</Card.Content>
+	<Card.Footer>
+		<AttachPopover parentNodeId={node.id} treeName={treeName} />
+	</Card.Footer>
 </Card.Root>

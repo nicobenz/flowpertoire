@@ -13,7 +13,10 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
+	import { slugify } from '$lib/utils';
 	import type { TreeSummary } from '$lib/types';
+	import { Spinner } from '$lib/components/ui/spinner/index.js';
+	import { addTreeDialog } from '$lib/state/state.svelte.js';
 
 	let { trees = [] }: { trees?: TreeSummary[] } = $props();
 
@@ -29,32 +32,32 @@
 		}))
 	);
 
-	// Selected tree from URL (/tree/123 -> id 123)
-	const currentTreeId = $derived.by(() => {
-		const match = $page.url.pathname.match(/^\/tree\/(\d+)$/);
-		return match ? parseInt(match[1], 10) : null;
+	// Selected tree from URL (/tree/bjj -> slug "bjj")
+	const currentTreeSlug = $derived.by(() => {
+		const match = $page.url.pathname.match(/^\/tree\/([^/]+)$/);
+		return match ? decodeURIComponent(match[1]).toLowerCase().trim() : null;
 	});
 
 	const activeTeam = $derived(
-		teams.find((t) => t.id === currentTreeId) ??
-			teams[0] ??
-			{ name: 'Add tree', logo: PlusIcon, plan: '' }
+		teams.find((t) => slugify(t.name) === currentTreeSlug) ??
+			teams[0] ?? { name: 'Add tree', logo: PlusIcon, plan: '' }
 	);
 
 	function changeTeam(_team: { id: number; name: string }) {
-		goto(`/tree/${_team.id}`);
+		const slug = slugify(_team.name) || String(_team.id);
+		goto(`/tree/${encodeURIComponent(slug)}`);
 	}
 
-	let addDialogOpen = $state(false);
 	let addTreeLabel = $state('');
 	let addTreeError = $state('');
+	let createSubmitting = $state(false);
 
 	function handleAddTreeResult(result: {
 		data?: { createTree?: { success?: boolean; error?: string; treeId?: number } };
 	}) {
 		const createTree = result?.data?.createTree;
 		if (createTree?.success) {
-			addDialogOpen = false;
+			addTreeDialog.open = false;
 			addTreeLabel = '';
 			addTreeError = '';
 			// Server redirects to the new tree on success, so no client goto needed
@@ -67,6 +70,7 @@
 	let treeToDelete = $state<{ id: number; name: string } | null>(null);
 	let deleteTreeError = $state('');
 	let dropdownOpen = $state(false);
+	let deleteSubmitting = $state(false);
 
 	function openDeleteDialog(team: { id: number; name: string }) {
 		treeToDelete = team;
@@ -89,34 +93,37 @@
 	}
 </script>
 
-<Dialog.Root bind:open={addDialogOpen}>
+<Dialog.Root bind:open={addTreeDialog.open}>
 	<Dialog.Content class="sm:max-w-[425px]">
 		<form
 			method="POST"
 			action="/tree?/createTree"
 			use:enhance={() => {
+				createSubmitting = true;
 				return async ({ result, update }) => {
-					if (result.type === 'redirect') {
-						// Server redirected to the new tree; close dialog and clear form before navigation
-						addDialogOpen = false;
-						addTreeLabel = '';
-						addTreeError = '';
-					} else if (result.type === 'success' && result.data) {
-						handleAddTreeResult(
+					try {
+						if (result.type === 'redirect') {
+							// Server redirected to the new tree; close dialog and clear form before navigation
+							addTreeDialog.open = false;
+							addTreeLabel = '';
+							addTreeError = '';
+						} else if (result.type === 'success' && result.data) {
+							handleAddTreeResult(
 								result as {
 									data: { createTree?: { success?: boolean; error?: string; treeId?: number } };
 								}
 							);
+						}
+						await update();
+					} finally {
+						createSubmitting = false;
 					}
-					await update();
 				};
 			}}
 		>
 			<Dialog.Header>
 				<Dialog.Title>Add tree</Dialog.Title>
-				<Dialog.Description>
-					Create a new skill tree (root category).
-				</Dialog.Description>
+				<Dialog.Description>Create a new skill tree (root group).</Dialog.Description>
 			</Dialog.Header>
 			<div class="grid gap-4 py-4">
 				<div class="grid gap-2">
@@ -136,8 +143,19 @@
 				</div>
 			</div>
 			<Dialog.Footer>
-				<Dialog.Close class={buttonVariants({ variant: 'outline' })}>Cancel</Dialog.Close>
-				<Button type="submit">Create</Button>
+				<Dialog.Close class={buttonVariants({ variant: 'outline' })} disabled={createSubmitting}
+					>Cancel</Dialog.Close
+				>
+				<Button type="submit" disabled={createSubmitting}>
+					<span class="relative inline-flex items-center justify-center">
+						<span class:invisible={createSubmitting}>Create</span>
+						{#if createSubmitting}
+							<span class="absolute inset-0 flex items-center justify-center">
+								<Spinner class="size-4" />
+							</span>
+						{/if}
+					</span>
+				</Button>
 			</Dialog.Footer>
 		</form>
 	</Dialog.Content>
@@ -149,13 +167,18 @@
 			method="POST"
 			action="/tree?/deleteTree"
 			use:enhance={() => {
+				deleteSubmitting = true;
 				return async ({ result, update }) => {
-					if (result.type === 'success' && result.data) {
-						handleDeleteTreeResult(
-							result as { data: { deleteTree?: { success?: boolean; error?: string } } }
-						);
+					try {
+						if (result.type === 'success' && result.data) {
+							handleDeleteTreeResult(
+								result as { data: { deleteTree?: { success?: boolean; error?: string } } }
+							);
+						}
+						await update();
+					} finally {
+						deleteSubmitting = false;
 					}
-					await update();
 				};
 			}}
 		>
@@ -173,11 +196,22 @@
 				</Dialog.Description>
 			</Dialog.Header>
 			{#if deleteTreeError}
-				<p class="text-sm text-destructive py-2">{deleteTreeError}</p>
+				<p class="py-2 text-sm text-destructive">{deleteTreeError}</p>
 			{/if}
 			<Dialog.Footer>
-				<Dialog.Close class={buttonVariants({ variant: 'outline' })}>Cancel</Dialog.Close>
-				<Button type="submit" variant="destructive">Delete</Button>
+				<Dialog.Close class={buttonVariants({ variant: 'outline' })} disabled={deleteSubmitting}
+					>Cancel</Dialog.Close
+				>
+				<Button type="submit" variant="destructive" disabled={deleteSubmitting}>
+					<span class="relative inline-flex items-center justify-center">
+						<span class:invisible={deleteSubmitting}>Delete</span>
+						{#if deleteSubmitting}
+							<span class="absolute inset-0 flex items-center justify-center">
+								<Spinner class="size-4" />
+							</span>
+						{/if}
+					</span>
+				</Button>
 			</Dialog.Footer>
 		</form>
 	</Dialog.Content>
@@ -228,7 +262,7 @@
 								type="button"
 								variant="ghost"
 								size="icon-sm"
-								class="shrink-0 size-7 text-muted-foreground hover:text-destructive"
+								class="size-7 shrink-0 text-muted-foreground hover:text-destructive"
 								aria-label="Delete tree"
 								onclick={(e) => {
 									e.preventDefault();
@@ -242,7 +276,7 @@
 					{/each}
 				{/if}
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item onSelect={() => (addDialogOpen = true)} class="gap-2 p-2">
+				<DropdownMenu.Item onSelect={() => (addTreeDialog.open = true)} class="gap-2 p-2">
 					<div class="flex size-6 items-center justify-center rounded-md border bg-transparent">
 						<PlusIcon class="size-4" />
 					</div>

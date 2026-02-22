@@ -1,6 +1,7 @@
 import { eq, and, or, sql, inArray } from 'drizzle-orm';
+import { slugify } from '$lib/utils';
 import { db } from './index';
-import { nodes, categories, nodeEdges, moves } from './schema';
+import { nodes, groups, nodeEdges, skills } from './schema';
 import type { TreeData } from '$lib/types';
 
 export type RootTree = { id: number; name: string };
@@ -10,21 +11,21 @@ function toISO(d: Date): string {
 }
 
 /**
- * Returns root trees for a user: category nodes that have no parent edge.
+ * Returns root trees for a user: group nodes that have no parent edge.
  * Ordered by node id for stable ordering.
  */
 export async function getRootTrees(userId: number): Promise<RootTree[]> {
 	const rows = await db
 		.select({
 			id: nodes.id,
-			label: categories.label
+			label: groups.label
 		})
 		.from(nodes)
-		.innerJoin(categories, eq(nodes.categoryId, categories.id))
+		.innerJoin(groups, eq(nodes.groupId, groups.id))
 		.where(
 			and(
 				eq(nodes.userId, userId),
-				eq(nodes.nodeType, 'category'),
+				eq(nodes.nodeType, 'group'),
 				sql`${nodes.id} NOT IN (SELECT child_id FROM node_edges WHERE type = 'parent')`
 			)
 		)
@@ -34,26 +35,26 @@ export async function getRootTrees(userId: number): Promise<RootTree[]> {
 }
 
 /**
- * Creates a new root tree: a category and its category node (no parent edge).
+ * Creates a new root tree: a group and its group node (no parent edge).
  * Returns the new root tree { id: nodeId, name: label }.
  */
 export async function createRootTree(userId: number, label: string): Promise<RootTree> {
 	const trimmed = label.trim();
 	if (!trimmed) throw new Error('Label is required');
 
-	const [category] = await db
-		.insert(categories)
+	const [group] = await db
+		.insert(groups)
 		.values({ label: trimmed })
-		.returning({ id: categories.id });
+		.returning({ id: groups.id });
 
-	if (!category) throw new Error('Failed to create category');
+	if (!group) throw new Error('Failed to create group');
 
 	const [node] = await db
 		.insert(nodes)
 		.values({
-			nodeType: 'category',
-			categoryId: category.id,
-			moveId: null,
+			nodeType: 'group',
+			groupId: group.id,
+			skillId: null,
 			userId,
 			sortOrder: 0
 		})
@@ -65,75 +66,94 @@ export async function createRootTree(userId: number, label: string): Promise<Roo
 }
 
 /**
- * Collects node id and all descendant node ids (via parent edges). Includes rootId.
+ * Resolves a URL slug (tree name segment) to the root node id for the user.
+ * Returns null if no tree matches. Single query to avoid fetching all trees (e.g. after create redirect).
  */
-async function getSubtreeNodeIds(rootId: number): Promise<number[]> {
-	const result = new Set<number>([rootId]);
-	let frontier = [rootId];
-	while (frontier.length > 0) {
-		const rows = await db
-			.select({ childId: nodeEdges.childId })
-			.from(nodeEdges)
-			.where(
-				and(eq(nodeEdges.type, 'parent'), inArray(nodeEdges.parentId, frontier))
-			);
-		frontier = [];
-		for (const r of rows) {
-			if (!result.has(r.childId)) {
-				result.add(r.childId);
-				frontier.push(r.childId);
-			}
-		}
-	}
-	return [...result];
+export async function getRootTreeIdBySlug(userId: number, urlSlug: string): Promise<number | null> {
+	const slug = decodeURIComponent(urlSlug).toLowerCase().trim();
+	if (!slug) return null;
+	// Match slug by normalizing group label in SQL (same rules as slugify: lower, trim, non-alnum to '-', trim dashes)
+	const rows = await db
+		.select({ id: nodes.id })
+		.from(nodes)
+		.innerJoin(groups, eq(nodes.groupId, groups.id))
+		.where(
+			and(
+				eq(nodes.userId, userId),
+				eq(nodes.nodeType, 'group'),
+				sql`${nodes.id} NOT IN (SELECT child_id FROM node_edges WHERE type = 'parent')`,
+				sql`trim(both '-' from regexp_replace(lower(trim(${groups.label})), '[^a-z0-9]+', '-', 'g')) = ${slug}`
+			)
+		)
+		.limit(1);
+	return rows[0]?.id ?? null;
 }
 
 /**
- * Deletes a root tree and its entire subtree (nodes, edges, and referenced moves/categories).
+ * Collects node id and all descendant node ids (via parent edges). Includes rootId.
+ * Uses a single recursive CTE instead of one query per level to reduce DB round-trips.
+ */
+async function getSubtreeNodeIds(rootId: number): Promise<number[]> {
+	const result = await db.execute<{ id: number }>(sql`
+		WITH RECURSIVE subtree(id) AS (
+			SELECT id FROM nodes WHERE id = ${rootId}
+			UNION
+			SELECT child_id FROM node_edges
+			INNER JOIN subtree s ON node_edges.parent_id = s.id
+			WHERE type = 'parent'
+		)
+		SELECT id FROM subtree
+	`);
+	const rows = 'rows' in result ? result.rows : result;
+	return Array.isArray(rows) ? rows.map((r) => r.id) : [];
+}
+
+/**
+ * Deletes a root tree and its entire subtree (nodes, edges, and referenced skills/groups).
  * Verifies the root node belongs to the user. Throws if not found or not owner.
  */
 export async function deleteRootTree(userId: number, rootNodeId: number): Promise<void> {
 	const [root] = await db
 		.select()
 		.from(nodes)
-		.where(and(eq(nodes.id, rootNodeId), eq(nodes.userId, userId), eq(nodes.nodeType, 'category')))
+		.where(and(eq(nodes.id, rootNodeId), eq(nodes.userId, userId), eq(nodes.nodeType, 'group')))
 		.limit(1);
 	if (!root) throw new Error('Tree not found or you do not own it');
 
 	const subtreeIds = await getSubtreeNodeIds(rootNodeId);
 	const nodeRows = await db
-		.select({ id: nodes.id, moveId: nodes.moveId, categoryId: nodes.categoryId })
+		.select({ id: nodes.id, skillId: nodes.skillId, groupId: nodes.groupId })
 		.from(nodes)
 		.where(inArray(nodes.id, subtreeIds));
 
-	const moveIds = nodeRows.map((r) => r.moveId).filter((id): id is number => id != null);
-	const categoryIds = nodeRows.map((r) => r.categoryId).filter((id): id is number => id != null);
+	const skillIds = nodeRows.map((r) => r.skillId).filter((id): id is number => id != null);
+	const groupIds = nodeRows.map((r) => r.groupId).filter((id): id is number => id != null);
 
 	await db
 		.delete(nodeEdges)
 		.where(or(inArray(nodeEdges.parentId, subtreeIds), inArray(nodeEdges.childId, subtreeIds)));
 	await db.delete(nodes).where(inArray(nodes.id, subtreeIds));
-	if (moveIds.length > 0) await db.delete(moves).where(inArray(moves.id, moveIds));
-	if (categoryIds.length > 0) await db.delete(categories).where(inArray(categories.id, categoryIds));
+	if (skillIds.length > 0) await db.delete(skills).where(inArray(skills.id, skillIds));
+	if (groupIds.length > 0) await db.delete(groups).where(inArray(groups.id, groupIds));
 }
 
 /**
- * Loads full tree data for a root (subtree): nodes, edges, moves, categories.
+ * Loads full tree data for a root (subtree): nodes, edges, skills, groups.
  * Verifies the root belongs to the user. Returns null if not found or not owner.
  */
 export async function getTreeData(userId: number, rootNodeId: number): Promise<TreeData | null> {
 	const [root] = await db
 		.select()
 		.from(nodes)
-		.where(and(eq(nodes.id, rootNodeId), eq(nodes.userId, userId), eq(nodes.nodeType, 'category')))
+		.where(and(eq(nodes.id, rootNodeId), eq(nodes.userId, userId), eq(nodes.nodeType, 'group')))
 		.limit(1);
 	if (!root) return null;
 
 	const subtreeIds = await getSubtreeNodeIds(rootNodeId);
 
 	const nodeRows = await db.select().from(nodes).where(inArray(nodes.id, subtreeIds));
-	const moveIds = nodeRows.map((r) => r.moveId).filter((id): id is number => id != null);
-	const categoryIds = nodeRows.map((r) => r.categoryId).filter((id): id is number => id != null);
+	const skillIds = nodeRows.map((r) => r.skillId).filter((id): id is number => id != null);
+	const groupIds = nodeRows.map((r) => r.groupId).filter((id): id is number => id != null);
 
 	const edgeRows = await db
 		.select()
@@ -145,19 +165,19 @@ export async function getTreeData(userId: number, rootNodeId: number): Promise<T
 			)
 		);
 
-	const moveRows =
-		moveIds.length > 0 ? await db.select().from(moves).where(inArray(moves.id, moveIds)) : [];
-	const categoryRows =
-		categoryIds.length > 0
-			? await db.select().from(categories).where(inArray(categories.id, categoryIds))
+	const skillRows =
+		skillIds.length > 0 ? await db.select().from(skills).where(inArray(skills.id, skillIds)) : [];
+	const groupRows =
+		groupIds.length > 0
+			? await db.select().from(groups).where(inArray(groups.id, groupIds))
 			: [];
 
 	return {
 		nodes: nodeRows.map((n) => ({
 			id: n.id,
 			nodeType: n.nodeType,
-			moveId: n.moveId,
-			categoryId: n.categoryId,
+			skillId: n.skillId,
+			groupId: n.groupId,
 			userId: n.userId,
 			showInGraph: n.showInGraph,
 			showInPortfolioList: n.showInPortfolioList,
@@ -171,7 +191,7 @@ export async function getTreeData(userId: number, rootNodeId: number): Promise<T
 			type: e.type,
 			sortOrder: e.sortOrder
 		})),
-		moves: moveRows.map((m) => ({
+		skills: skillRows.map((m) => ({
 			id: m.id,
 			title: m.title,
 			skillRating: m.skillRating,
@@ -179,13 +199,121 @@ export async function getTreeData(userId: number, rootNodeId: number): Promise<T
 			createdAt: toISO(m.createdAt),
 			updatedAt: toISO(m.updatedAt)
 		})),
-		categories: categoryRows.map((c) => ({
+		groups: groupRows.map((c) => ({
 			id: c.id,
-			conceptId: c.conceptId,
 			label: c.label,
 			description: c.description,
 			createdAt: toISO(c.createdAt),
 			updatedAt: toISO(c.updatedAt)
 		}))
 	};
+}
+
+/**
+ * Gets the next sort order for a new child under parentId (max existing + 1).
+ */
+async function getNextChildSortOrder(parentId: number): Promise<number> {
+	const result = await db
+		.select({ maxOrder: sql<number>`max(${nodeEdges.sortOrder})` })
+		.from(nodeEdges)
+		.where(
+			and(eq(nodeEdges.parentId, parentId), eq(nodeEdges.type, 'parent'))
+		);
+	const maxOrder = result[0]?.maxOrder;
+	return typeof maxOrder === 'number' ? maxOrder + 1 : 0;
+}
+
+/**
+ * Adds a new group as a child of the given parent node. Creates the group, its node, and the parent edge.
+ * Verifies parent exists and belongs to user. Returns the new node id.
+ */
+export async function addChildGroup(
+	userId: number,
+	parentNodeId: number,
+	label: string,
+	description?: string | null
+): Promise<number> {
+	const trimmed = label.trim();
+	if (!trimmed) throw new Error('Label is required');
+
+	const [parent] = await db
+		.select()
+		.from(nodes)
+		.where(and(eq(nodes.id, parentNodeId), eq(nodes.userId, userId)))
+		.limit(1);
+	if (!parent) throw new Error('Parent node not found or you do not own it');
+
+	const [group] = await db
+		.insert(groups)
+		.values({ label: trimmed, description: description?.trim() || null })
+		.returning({ id: groups.id });
+	if (!group) throw new Error('Failed to create group');
+
+	const [node] = await db
+		.insert(nodes)
+		.values({
+			nodeType: 'group',
+			groupId: group.id,
+			skillId: null,
+			userId,
+			sortOrder: 0
+		})
+		.returning({ id: nodes.id });
+	if (!node) throw new Error('Failed to create node');
+
+	const sortOrder = await getNextChildSortOrder(parentNodeId);
+	await db.insert(nodeEdges).values({
+		parentId: parentNodeId,
+		childId: node.id,
+		type: 'parent',
+		sortOrder
+	});
+	return node.id;
+}
+
+/**
+ * Adds a new skill as a child of the given parent node. Creates the skill, its node, and the parent edge.
+ * Verifies parent exists and belongs to user. Returns the new node id.
+ */
+export async function addChildSkill(
+	userId: number,
+	parentNodeId: number,
+	title: string
+): Promise<number> {
+	const trimmed = title.trim();
+	if (!trimmed) throw new Error('Title is required');
+
+	const [parent] = await db
+		.select()
+		.from(nodes)
+		.where(and(eq(nodes.id, parentNodeId), eq(nodes.userId, userId)))
+		.limit(1);
+	if (!parent) throw new Error('Parent node not found or you do not own it');
+
+	const [skill] = await db
+		.insert(skills)
+		.values({ title: trimmed })
+		.returning({ id: skills.id });
+	if (!skill) throw new Error('Failed to create skill');
+
+	const [node] = await db
+		.insert(nodes)
+		.values({
+			nodeType: 'skill',
+			skillId: skill.id,
+			groupId: null,
+			userId,
+			sortOrder: 0
+		})
+		.returning({ id: nodes.id });
+	if (!node) throw new Error('Failed to create node');
+
+	const sortOrder = await getNextChildSortOrder(parentNodeId);
+	await db.insert(nodeEdges).values({
+		parentId: parentNodeId,
+		childId: node.id,
+		type: 'parent',
+		sortOrder
+	});
+	return node.id;
 }

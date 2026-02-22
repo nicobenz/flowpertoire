@@ -1,10 +1,14 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { createRootTree, deleteRootTree, getRootTrees } from '$lib/server/db/queries';
 import { DEFAULT_USER_ID } from '$lib/server/db/default-user';
+import { slugify } from '$lib/utils';
 
 export async function load() {
 	const trees = await getRootTrees(DEFAULT_USER_ID);
-	if (trees.length > 0) throw redirect(302, `/tree/${trees[0].id}`);
+	if (trees.length > 0) {
+		const slug = slugify(trees[0].name) || String(trees[0].id);
+		throw redirect(302, `/tree/${encodeURIComponent(slug)}`);
+	}
 	return {};
 }
 
@@ -17,7 +21,8 @@ export const actions = {
 		}
 		try {
 			const created = await createRootTree(DEFAULT_USER_ID, label);
-			throw redirect(303, `/tree/${created.id}`);
+			const slug = slugify(created.name) || String(created.id);
+			throw redirect(303, `/tree/${encodeURIComponent(slug)}`);
 		} catch (err) {
 			// Rethrow redirect so the client follows it (and lands on the new tree)
 			const r = err as { status?: number; location?: string };

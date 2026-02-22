@@ -22,16 +22,9 @@ export const users = pgTable('users', {
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
 
-// ---- Move concepts (same category across props: e.g. "Weaves" in poi and hoop) ----
+// ---- Skills (concrete skill: user-set skill rating 0–5) ----
 
-export const moveConcepts = pgTable('move_concepts', {
-	id: serial('id').primaryKey()
-	// Optional: canonical name/slug later; for now the concept is just a grouping id
-});
-
-// ---- Moves (concrete move: user-set skill rating 0–5) ----
-
-export const moves = pgTable('moves', {
+export const skills = pgTable('skills', {
 	id: serial('id').primaryKey(),
 	title: text('title').notNull(),
 	skillRating: integer('skill_rating').notNull().default(0), // 0–5
@@ -40,30 +33,29 @@ export const moves = pgTable('moves', {
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
 
-// ---- Categories (label + description; optional link to cross-prop concept) ----
+// ---- Groups (label + description) ----
 
-export const categories = pgTable('categories', {
+export const groups = pgTable('groups', {
 	id: serial('id').primaryKey(),
-	conceptId: integer('concept_id').references(() => moveConcepts.id, { onDelete: 'set null' }),
 	label: text('label').notNull(),
 	description: text('description'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
 
-// ---- Node type: each node is either a move or a category (no hybrid) ----
+// ---- Node type: each node is either a skill or a group (no hybrid) ----
 
-export const nodeTypeEnum = pgEnum('node_type', ['move', 'category']);
+export const nodeTypeEnum = pgEnum('node_type', ['skill', 'group']);
 
-// ---- Nodes (DAG vertex; exactly one of move or category; structure via node_edges) ----
+// ---- Nodes (DAG vertex; exactly one of skill or group; structure via node_edges) ----
 
 export const nodes = pgTable(
 	'nodes',
 	{
 		id: serial('id').primaryKey(),
 		nodeType: nodeTypeEnum('node_type').notNull(),
-		moveId: integer('move_id').references(() => moves.id, { onDelete: 'cascade' }),
-		categoryId: integer('category_id').references(() => categories.id, {
+		skillId: integer('skill_id').references(() => skills.id, { onDelete: 'cascade' }),
+		groupId: integer('group_id').references(() => groups.id, {
 			onDelete: 'cascade'
 		}),
 		userId: integer('user_id')
@@ -76,12 +68,12 @@ export const nodes = pgTable(
 		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 	},
 	(table) => [
-		// Enforce: move node has moveId set and categoryId null; category node the opposite
+		// Enforce: skill node has skillId set and groupId null; group node the opposite
 		check(
-			'node_type_move_or_category',
+			'node_type_skill_or_group',
 			sql`(
-        (${table.nodeType} = 'move' AND ${table.moveId} IS NOT NULL AND ${table.categoryId} IS NULL) OR
-        (${table.nodeType} = 'category' AND ${table.moveId} IS NULL AND ${table.categoryId} IS NOT NULL)
+        (${table.nodeType} = 'skill' AND ${table.skillId} IS NOT NULL AND ${table.groupId} IS NULL) OR
+        (${table.nodeType} = 'group' AND ${table.skillId} IS NULL AND ${table.groupId} IS NOT NULL)
       )`
 		)
 	]
@@ -116,16 +108,11 @@ export const usersRelations = relations(users, ({ many }) => ({
 	nodes: many(nodes)
 }));
 
-export const moveConceptsRelations = relations(moveConcepts, ({ many }) => ({
-	categories: many(categories)
-}));
-
-export const movesRelations = relations(moves, ({ one }) => ({
+export const skillsRelations = relations(skills, ({ one }) => ({
 	node: one(nodes)
 }));
 
-export const categoriesRelations = relations(categories, ({ one }) => ({
-	concept: one(moveConcepts, { fields: [categories.conceptId], references: [moveConcepts.id] }),
+export const groupsRelations = relations(groups, ({ one }) => ({
 	node: one(nodes)
 }));
 
@@ -145,7 +132,7 @@ export const nodeEdgesRelations = relations(nodeEdges, ({ one }) => ({
 export const nodesRelations = relations(nodes, ({ one, many }) => ({
 	parentEdges: many(nodeEdges, { relationName: 'childEdges' }), // edges where this node is the child
 	childEdges: many(nodeEdges, { relationName: 'parentEdges' }), // edges where this node is the parent
-	move: one(moves, { fields: [nodes.moveId], references: [moves.id] }),
-	category: one(categories, { fields: [nodes.categoryId], references: [categories.id] }),
+	skill: one(skills, { fields: [nodes.skillId], references: [skills.id] }),
+	group: one(groups, { fields: [nodes.groupId], references: [groups.id] }),
 	user: one(users, { fields: [nodes.userId], references: [users.id] })
 }));

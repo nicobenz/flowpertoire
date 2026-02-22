@@ -5,7 +5,7 @@
 		resolveNode
 	} from '$lib/graph/cytoscape-tree';
 	import SkillOverview from '$lib/components/nodes/SkillOverview.svelte';
-	import type { Move, Node, ResolvedNode } from '$lib/types';
+	import type { Skill, Node, ResolvedNode } from '$lib/types';
 
 	let { data } = $props();
 
@@ -83,7 +83,7 @@
 		graph.setStructure(graphStructure);
 	});
 
-	// When only move skill ratings change, update node fill in place (no full redraw)
+	// When only skill ratings change, update node fill in place (no full redraw)
 	$effect(() => {
 		if (!graph) return;
 		if (!treeData) return;
@@ -98,12 +98,12 @@
 		return node && node.id != null ? resolveNode(treeData, node as Node) : undefined;
 	});
 
-	const selectedMove = $derived.by(() => {
+	const selectedSkill = $derived.by(() => {
 		if (selectedNodeId == null) return undefined;
 		if (!treeData) return undefined;
 		const node = treeData.nodes.find((n) => n.id === selectedNodeId);
-		if (node?.nodeType !== 'move') return undefined;
-		return treeData.moves.find((m) => m.id === node.moveId);
+		if (node?.nodeType !== 'skill') return undefined;
+		return treeData.skills.find((s) => s.id === node.skillId);
 	});
 </script>
 
@@ -111,7 +111,11 @@
 	<div bind:this={cyContainer} class="absolute inset-0 w-full h-full z-0"></div>
 	{#if selectedResolvedNode}
 		<div class="absolute top-0 left-0 z-10">
-			<SkillOverview node={selectedResolvedNode} move={selectedMove as Move | undefined} />
+			<SkillOverview
+				node={selectedResolvedNode}
+				skill={selectedSkill as Skill | undefined}
+				treeName={data.treeName}
+			/>
 		</div>
 	{/if}
 </div>

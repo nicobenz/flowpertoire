@@ -28,13 +28,15 @@ export const celebrateSettings = $state({
 	]
 });
 
+/** Shared state so the add-tree dialog can be opened from the sidebar or from the empty tree page. */
+export const addTreeDialog = $state({ open: false });
+
 const defaultTreeData = $state<{ trees: TreeData[] }>({
 	trees: [
 		{
-			categories: [
+			groups: [
 				{
 					id: 1,
-					conceptId: null,
 					label: 'Calisthenics',
 					description: 'Bodyweight strength skills',
 					createdAt: sampleDate,
@@ -42,14 +44,13 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 2,
-					conceptId: null,
 					label: 'Push-up variations',
 					description: 'Horizontal pushing progressions',
 					createdAt: sampleDate,
 					updatedAt: sampleDate
 				}
 			],
-			moves: [
+			skills: [
 				{
 					id: 1,
 					title: 'Regular Push-up',
@@ -84,12 +85,12 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				}
 			],
 			nodes: [
-				// Root: Calisthenics category
+				// Root: Calisthenics group
 				{
 					id: 1,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 1,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 1,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -97,12 +98,12 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					createdAt: sampleDate,
 					updatedAt: sampleDate
 				},
-				// Push-up variations category (parent of all push-up move leaves)
+				// Push-up variations group (parent of all push-up skill leaves)
 				{
 					id: 2,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 2,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 2,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -110,12 +111,12 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					createdAt: sampleDate,
 					updatedAt: sampleDate
 				},
-				// Move leaves under Push-up variations
+				// Skill leaves under Push-up variations
 				{
 					id: 6,
-					nodeType: 'move',
-					moveId: 1,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 1,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -125,9 +126,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 3,
-					nodeType: 'move',
-					moveId: 2,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 2,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -137,9 +138,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 4,
-					nodeType: 'move',
-					moveId: 3,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 3,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -149,9 +150,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 5,
-					nodeType: 'move',
-					moveId: 4,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 4,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -169,10 +170,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 			]
 		},
 		{
-			categories: [
+			groups: [
 				{
 					id: 1,
-					conceptId: null,
 					label: 'Poi',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
@@ -180,7 +180,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 2,
-					conceptId: null,
 					label: 'Hula Hoop',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
@@ -188,7 +187,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 3,
-					conceptId: null,
 					label: 'Twin Hoop',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
@@ -196,7 +194,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 4,
-					conceptId: null,
 					label: 'Rope Dart',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
@@ -204,7 +201,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 5,
-					conceptId: 1,
 					label: 'Weaves',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
@@ -212,7 +208,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 6,
-					conceptId: null,
 					label: 'Flowers',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
@@ -220,7 +215,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 7,
-					conceptId: null,
 					label: 'Spiral Wrap',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
@@ -228,7 +222,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 8,
-					conceptId: null,
 					label: 'Escalator',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
@@ -236,7 +229,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 9,
-					conceptId: null,
 					label: 'Isolations',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
@@ -244,14 +236,13 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 10,
-					conceptId: 1,
 					label: 'Weaves',
 					description: 'Flowy stuff',
 					createdAt: sampleDate,
 					updatedAt: sampleDate
 				}
 			],
-			moves: [
+			skills: [
 				{
 					id: 1,
 					title: '2-Beat Weave',
@@ -368,9 +359,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 			nodes: [
 				{
 					id: 1,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 1,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 1,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -380,9 +371,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 2,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 2,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 2,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -392,9 +383,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 3,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 3,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 3,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -404,9 +395,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 4,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 4,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 4,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -416,9 +407,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 5,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 5,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 5,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -428,9 +419,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 6,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 6,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 6,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -440,9 +431,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 7,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 7,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 7,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -452,9 +443,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 22,
-					nodeType: 'move',
-					moveId: 8,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 8,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -464,9 +455,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 8,
-					nodeType: 'move',
-					moveId: 1,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 1,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -476,9 +467,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 9,
-					nodeType: 'move',
-					moveId: 2,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 2,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -488,9 +479,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 10,
-					nodeType: 'move',
-					moveId: 3,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 3,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -500,9 +491,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 11,
-					nodeType: 'move',
-					moveId: 4,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 4,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -512,9 +503,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 12,
-					nodeType: 'move',
-					moveId: 5,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 5,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -524,9 +515,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 13,
-					nodeType: 'move',
-					moveId: 6,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 6,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -536,9 +527,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 14,
-					nodeType: 'move',
-					moveId: 7,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 7,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -548,9 +539,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 15,
-					nodeType: 'move',
-					moveId: 9,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 9,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -560,9 +551,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 16,
-					nodeType: 'move',
-					moveId: 10,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 10,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -572,9 +563,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 17,
-					nodeType: 'move',
-					moveId: 11,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 11,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -584,9 +575,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 18,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 10,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 10,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -596,9 +587,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 19,
-					nodeType: 'move',
-					moveId: 13,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 13,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -608,9 +599,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 20,
-					nodeType: 'move',
-					moveId: 14,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 14,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -620,9 +611,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 21,
-					nodeType: 'move',
-					moveId: 15,
-					categoryId: null,
+					nodeType: 'skill',
+					skillId: 15,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -655,10 +646,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 			]
 		},
 		{
-			categories: [
+			groups: [
 				{
 					id: 1,
-					conceptId: null,
 					label: 'Dance',
 					description: 'Dancy stuff',
 					createdAt: sampleDate,
@@ -666,7 +656,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 2,
-					conceptId: null,
 					label: 'Salsa',
 					description: 'Partner dance',
 					createdAt: sampleDate,
@@ -674,7 +663,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 3,
-					conceptId: null,
 					label: 'Pole dance',
 					description: 'Pole fitness & dance',
 					createdAt: sampleDate,
@@ -682,7 +670,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 4,
-					conceptId: null,
 					label: 'Salsa Rueda',
 					description: 'Circle salsa',
 					createdAt: sampleDate,
@@ -690,7 +677,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 5,
-					conceptId: null,
 					label: 'Salsa Cubana',
 					description: 'Cuban style',
 					createdAt: sampleDate,
@@ -698,7 +684,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 7,
-					conceptId: null,
 					label: 'Flips',
 					description: 'Pole flips',
 					createdAt: sampleDate,
@@ -706,7 +691,6 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 8,
-					conceptId: null,
 					label: 'Climbs',
 					description: 'Pole climbs',
 					createdAt: sampleDate,
@@ -714,14 +698,13 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 9,
-					conceptId: null,
 					label: 'Inverts',
 					description: 'Inverted poses',
 					createdAt: sampleDate,
 					updatedAt: sampleDate
 				}
 			],
-			moves: [
+			skills: [
 				{
 					id: 1,
 					title: 'Dame ona',
@@ -918,9 +901,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 			nodes: [
 				{
 					id: 1,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 1,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 1,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -930,9 +913,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 2,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 2,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 2,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -942,9 +925,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 3,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 3,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 3,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -954,9 +937,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 4,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 4,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 4,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -966,9 +949,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 5,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 5,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 5,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -978,9 +961,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 7,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 7,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 7,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -990,9 +973,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 8,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 8,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 8,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -1002,9 +985,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				{
 					id: 9,
-					nodeType: 'category',
-					moveId: null,
-					categoryId: 9,
+					nodeType: 'group',
+					skillId: null,
+					groupId: 9,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -1014,9 +997,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				},
 				...Array.from({ length: 5 }, (_, i) => ({
 					id: 11 + i,
-					nodeType: 'move' as const,
-					moveId: 1 + i,
-					categoryId: null,
+					nodeType: 'skill' as const,
+					skillId: 1 + i,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -1026,9 +1009,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				})),
 				...Array.from({ length: 5 }, (_, i) => ({
 					id: 16 + i,
-					nodeType: 'move' as const,
-					moveId: 6 + i,
-					categoryId: null,
+					nodeType: 'skill' as const,
+					skillId: 6 + i,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -1038,9 +1021,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				})),
 				...Array.from({ length: 5 }, (_, i) => ({
 					id: 26 + i,
-					nodeType: 'move' as const,
-					moveId: 16 + i,
-					categoryId: null,
+					nodeType: 'skill' as const,
+					skillId: 16 + i,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -1050,9 +1033,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				})),
 				...Array.from({ length: 5 }, (_, i) => ({
 					id: 31 + i,
-					nodeType: 'move' as const,
-					moveId: 21 + i,
-					categoryId: null,
+					nodeType: 'skill' as const,
+					skillId: 21 + i,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -1062,9 +1045,9 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 				})),
 				...Array.from({ length: 5 }, (_, i) => ({
 					id: 36 + i,
-					nodeType: 'move' as const,
-					moveId: 26 + i,
-					categoryId: null,
+					nodeType: 'skill' as const,
+					skillId: 26 + i,
+					groupId: null,
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
@@ -1119,17 +1102,17 @@ export const appState = $state({
 	selectedIndex: 0
 });
 
-/** Structure only (no move.skillRating) – graph effect depends on this so rating changes don’t redraw. */
+/** Structure only (no skill.skillRating) – graph effect depends on this so rating changes don’t redraw. */
 const currentGraphStructure = $derived.by((): GraphStructure | null => {
 	const data = tree.default.trees[appState.selectedIndex];
 	if (!data) return null;
 	return {
 		nodes: data.nodes,
 		edges: data.edges,
-		categories: data.categories,
-		moves: data.moves
-			.filter((m): m is typeof m & { id: number } => m.id != null)
-			.map((m) => ({ id: m.id, title: m.title }))
+		groups: data.groups,
+		skills: data.skills
+			.filter((s): s is typeof s & { id: number } => s.id != null)
+			.map((s) => ({ id: s.id, title: s.title }))
 	};
 });
 

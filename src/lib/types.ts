@@ -3,7 +3,7 @@
  * Used by moveState and (later) API layer.
  */
 
-export interface Move {
+export interface Skill {
 	id: number;
 	title: string;
 	skillRating: number; // 0–5
@@ -12,9 +12,8 @@ export interface Move {
 	updatedAt: string;
 }
 
-export interface Category {
+export interface Group {
 	id: number;
-	conceptId: number | null;
 	label: string;
 	description: string | null;
 	createdAt: string;
@@ -32,37 +31,37 @@ interface NodeBase {
 	updatedAt: string;
 }
 
-/** Node that represents a move (exactly one of moveId or categoryId is set). */
-export interface MoveNode extends NodeBase {
-	nodeType: 'move';
-	moveId: number;
-	categoryId: null;
+/** Node that represents a skill (exactly one of skillId or groupId is set). */
+export interface SkillNode extends NodeBase {
+	nodeType: 'skill';
+	skillId: number;
+	groupId: null;
 }
 
-/** Node that represents a category. */
-export interface CategoryNode extends NodeBase {
-	nodeType: 'category';
-	moveId: null;
-	categoryId: number;
+/** Node that represents a group. */
+export interface GroupNode extends NodeBase {
+	nodeType: 'group';
+	skillId: null;
+	groupId: number;
 }
 
-/** A node is either a move or a category—never both (no hybrid). */
-export type Node = MoveNode | CategoryNode;
+/** A node is either a skill or a group—never both (no hybrid). */
+export type Node = SkillNode | GroupNode;
 
 /**
- * Node with resolved display fields from linked move/category.
- * - label: from move.title or category.label
- * - skillRating: present when node is a move (from move.skillRating)
- * - description: present when node is a category (from category.description)
- * - aggregateSkillRating: present when node is a category (average 0–5 of moves in subtree)
+ * Node with resolved display fields from linked skill/group.
+ * - label: from skill.title or group.label
+ * - skillRating: present when node is a skill (from skill.skillRating)
+ * - description: present when node is a group (from group.description)
+ * - aggregateSkillRating: present when node is a group (average 0–5 of skills in subtree)
  */
 export type ResolvedNode = Node & {
 	label: string;
-	/** Set when node is a move. */
+	/** Set when node is a skill. */
 	skillRating?: number;
-	/** Set when node is a category. */
+	/** Set when node is a group. */
 	description?: string | null;
-	/** Set when node is a category: average skill rating (0–5) of all moves in subtree. */
+	/** Set when node is a group: average skill rating (0–5) of all skills in subtree. */
 	aggregateSkillRating?: number;
 };
 
@@ -81,20 +80,20 @@ export interface NodeEdge {
 export interface TreeData {
 	nodes: Array<Omit<Node, 'id'> & { id?: number }>;
 	edges: Array<NodeEdge>;
-	moves: Array<Omit<Move, 'id'> & { id?: number }>;
-	categories: Array<Omit<Category, 'id'> & { id?: number }>;
+	skills: Array<Omit<Skill, 'id'> & { id?: number }>;
+	groups: Array<Omit<Group, 'id'> & { id?: number }>;
 }
 
-/** Summary of a root tree for the switcher (id = node id, name = category label). */
+/** Summary of a root tree for the switcher (id = node id, name = group label). */
 export interface TreeSummary {
 	id: number;
 	name: string;
 }
 
-/** Tree shape without move skillRating – for graph layout so rating changes don’t redraw. */
+/** Tree shape without skill rating – for graph layout so rating changes don't redraw. */
 export interface GraphStructure {
 	nodes: TreeData['nodes'];
 	edges: TreeData['edges'];
-	categories: TreeData['categories'];
-	moves: Array<{ id: number; title: string }>;
+	groups: TreeData['groups'];
+	skills: Array<{ id: number; title: string }>;
 }

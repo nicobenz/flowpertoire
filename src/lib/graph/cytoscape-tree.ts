@@ -1,6 +1,6 @@
 /**
- * Convert TreeData (nodes, moves, categories) to Cytoscape elements (nodes + edges).
- * Node labels come from move title or category label.
+ * Convert TreeData (nodes, skills, groups) to Cytoscape elements (nodes + edges).
+ * Node labels come from skill title or group label.
  * TreeGraph class encapsulates all cytoscape instance, layout, and event logic.
  */
 
@@ -10,8 +10,8 @@ import type {
 	TreeData,
 	GraphStructure,
 	Node,
-	Move,
-	Category,
+	Skill,
+	Group,
 	NodeEdgeType,
 	ResolvedNode
 } from '$lib/types';
@@ -77,7 +77,7 @@ function buildStylesheet(theme: TreeGraphTheme): cytoscape.StylesheetJson {
 			style: { shape: 'round-diamond', width: 50, height: 50 }
 		},
 		{
-			selector: 'node[isCategoryNonRoot="true"]',
+			selector: 'node[isGroupNonRoot="true"]',
 			style: { width: 15, height: 15 }
 		},
 		{
@@ -134,7 +134,7 @@ function buildStylesheet(theme: TreeGraphTheme): cytoscape.StylesheetJson {
 /**
  * Encapsulates a Cytoscape tree graph: instance, layout, styling, and event handlers.
  * Call setStructure() when graph structure changes; call updateFillPercents() when only
- * move skill ratings change. Use onSelectionChange to react to node selection.
+ * skill ratings change. Use onSelectionChange to react to node selection.
  */
 export class TreeGraph {
 	private cy: cytoscape.Core | undefined;
@@ -319,39 +319,39 @@ export class TreeGraph {
 
 function getLabel(
 	node: Node,
-	moves: { id: number; title: string }[],
-	categories: { id: number; label: string }[]
+	skills: { id: number; title: string }[],
+	groups: { id: number; label: string }[]
 ): string {
-	if (node.nodeType === 'move') {
-		const m = moves.find((x) => x.id === node.moveId);
-		if (m) return m.title;
+	if (node.nodeType === 'skill') {
+		const s = skills.find((x) => x.id === node.skillId);
+		if (s) return s.title;
 	} else {
-		const c = categories.find((x) => x.id === node.categoryId);
-		if (c) return c.label;
+		const g = groups.find((x) => x.id === node.groupId);
+		if (g) return g.label;
 	}
 	return `Node ${node.id}`;
 }
 
 /**
- * Resolve a node with label, and with skillRating (if move) or description + aggregateSkillRating (if category).
+ * Resolve a node with label, and with skillRating (if skill) or description + aggregateSkillRating (if group).
  */
 export function resolveNode(data: TreeData, node: Node): ResolvedNode {
-	const movesList = data.moves as Move[];
-	const categoriesList = data.categories as Category[];
-	const label = getLabel(node, movesList, categoriesList);
+	const skillsList = data.skills as Skill[];
+	const groupsList = data.groups as Group[];
+	const label = getLabel(node, skillsList, groupsList);
 	const resolved: ResolvedNode = { ...node, label };
-	if (node.nodeType === 'move') {
-		const move = movesList.find((m) => m.id === node.moveId);
-		if (move) resolved.skillRating = move.skillRating;
+	if (node.nodeType === 'skill') {
+		const skill = skillsList.find((s) => s.id === node.skillId);
+		if (skill) resolved.skillRating = skill.skillRating;
 	} else {
-		const category = categoriesList.find((c) => c.id === node.categoryId);
-		if (category) resolved.description = category.description ?? null;
+		const group = groupsList.find((g) => g.id === node.groupId);
+		if (group) resolved.description = group.description ?? null;
 		const childIdsByParent = getChildIdsByParent(data.edges);
-		const fillPercent = categoryFillFromSubtree(
+		const fillPercent = groupFillFromSubtree(
 			node.id!,
 			data.nodes,
 			childIdsByParent,
-			movesList
+			skillsList
 		);
 		resolved.aggregateSkillRating = (fillPercent / 100) * 5;
 	}
@@ -367,9 +367,9 @@ export interface CytoscapeElement {
 		target?: string;
 		edgeType?: NodeEdgeType;
 		isRoot?: string;
-		/** True for category nodes that are not roots (small 10×10 shape). */
-		isCategoryNonRoot?: string;
-		/** 0–100: moves from skillRating; categories from average of all moves in subtree. */
+		/** True for group nodes that are not roots (small 10×10 shape). */
+		isGroupNonRoot?: string;
+		/** 0–100: skills from skillRating; groups from average of all skills in subtree. */
 		fillPercent?: number;
 	};
 }
@@ -409,15 +409,15 @@ function getDescendantIds(
 }
 
 /**
- * Average fill (0–100) for a category from all moves in its subtree.
- * Traverses nested categories to include every move in the subtree.
- * Returns 0 if the subtree has no moves.
+ * Average fill (0–100) for a group from all skills in its subtree.
+ * Traverses nested groups to include every skill in the subtree.
+ * Returns 0 if the subtree has no skills.
  */
-function categoryFillFromSubtree(
+function groupFillFromSubtree(
 	nodeId: number,
 	nodes: TreeData['nodes'],
 	childIdsByParent: Map<number, number[]>,
-	movesList: Move[]
+	skillsList: Skill[]
 ): number {
 	const nodeById = new Map<number, Node>();
 	for (const n of nodes) {
@@ -428,10 +428,10 @@ function categoryFillFromSubtree(
 	let count = 0;
 	for (const id of descendantIds) {
 		const node = nodeById.get(id) as Node | undefined;
-		if (!node || node.nodeType !== 'move') continue;
-		const move = movesList.find((m) => m.id === node.moveId);
-		if (move == null) continue;
-		sum += Math.min(5, Math.max(0, move.skillRating));
+		if (!node || node.nodeType !== 'skill') continue;
+		const skill = skillsList.find((s) => s.id === node.skillId);
+		if (skill == null) continue;
+		sum += Math.min(5, Math.max(0, skill.skillRating));
 		count += 1;
 	}
 	if (count === 0) return 0;
@@ -447,10 +447,10 @@ export function treeToCytoscapeElements(
 	data: TreeData | GraphStructure,
 	skipFillPercent?: boolean
 ): CytoscapeElement[] {
-	const { nodes, edges, moves, categories } = data;
+	const { nodes, edges, skills, groups } = data;
 	const elements: CytoscapeElement[] = [];
-	const movesList = moves as Move[];
-	const categoriesList = categories as Category[];
+	const skillsList = skills as Skill[];
+	const groupsList = groups as Group[];
 
 	// Nodes that appear as child in any parent edge are not roots
 	const childIds = new Set(
@@ -465,30 +465,30 @@ export function treeToCytoscapeElements(
 		const isRoot = !childIds.has(nodeId);
 		let fillPercent: number | undefined;
 		if (!skipFillPercent) {
-			if (node.nodeType === 'move') {
-				const move = movesList.find((m) => m.id === node.moveId);
-				if (move) {
-					const r = Math.min(5, Math.max(0, move.skillRating));
+			if (node.nodeType === 'skill') {
+				const skill = skillsList.find((s) => s.id === node.skillId);
+				if (skill) {
+					const r = Math.min(5, Math.max(0, skill.skillRating));
 					fillPercent = (r / 5) * 100;
 				}
 			} else {
-				// Category: aggregate of all moves in subtree (including nested categories)
-				fillPercent = categoryFillFromSubtree(
+				// Group: aggregate of all skills in subtree (including nested groups)
+				fillPercent = groupFillFromSubtree(
 					nodeId,
 					nodes,
 					childIdsByParent,
-					movesList
+					skillsList
 				);
 			}
 		}
-		const isCategoryNonRoot = !isRoot && node.nodeType === 'category';
+		const isGroupNonRoot = !isRoot && node.nodeType === 'group';
 		elements.push({
 			group: 'nodes',
 			data: {
 				id,
-				label: getLabel(node as Node, movesList, categoriesList),
+				label: getLabel(node as Node, skillsList, groupsList),
 				...(isRoot && { isRoot: 'true' }),
-				...(isCategoryNonRoot && { isCategoryNonRoot: 'true' }),
+				...(isGroupNonRoot && { isGroupNonRoot: 'true' }),
 				...(fillPercent !== undefined && { fillPercent })
 			}
 		});
@@ -516,7 +516,7 @@ export function treeToCytoscapeElements(
 
 /**
  * Update fillPercent on existing Cytoscape nodes from tree data.
- * Moves: own skillRating. Categories: average of all moves in subtree.
+ * Skills: own skillRating. Groups: average of all skills in subtree.
  * Call this when only skill ratings changed so the graph is not recreated.
  */
 export function updateNodeFillPercents(
@@ -529,22 +529,22 @@ export function updateNodeFillPercents(
 	},
 	data: TreeData
 ): void {
-	const movesList = data.moves as Move[];
+	const skillsList = data.skills as Skill[];
 	const childIdsByParent = getChildIdsByParent(data.edges);
 	for (const node of data.nodes) {
 		if (node.id == null) continue;
 		let fillPercent: number | undefined;
-		if (node.nodeType === 'move') {
-			const move = movesList.find((m) => m.id === node.moveId);
-			fillPercent = move
-				? (Math.min(5, Math.max(0, move.skillRating)) / 5) * 100
+		if (node.nodeType === 'skill') {
+			const skill = skillsList.find((s) => s.id === node.skillId);
+			fillPercent = skill
+				? (Math.min(5, Math.max(0, skill.skillRating)) / 5) * 100
 				: undefined;
 		} else {
-			fillPercent = categoryFillFromSubtree(
+			fillPercent = groupFillFromSubtree(
 				node.id,
 				data.nodes,
 				childIdsByParent,
-				movesList
+				skillsList
 			);
 		}
 		const el = cy.getElementById(String(node.id));
