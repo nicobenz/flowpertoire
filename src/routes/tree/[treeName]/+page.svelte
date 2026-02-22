@@ -1,10 +1,14 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import {
 		TreeGraph,
 		type TreeGraphTheme,
 		resolveNode
 	} from '$lib/graph/cytoscape-tree';
 	import SkillOverview from '$lib/components/nodes/SkillOverview.svelte';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import type { Skill, Node, ResolvedNode } from '$lib/types';
 
 	let { data } = $props();
@@ -12,6 +16,31 @@
 	let cyContainer: HTMLDivElement | undefined;
 	let graph: TreeGraph | undefined;
 	let selectedNodeId = $state<number | null>(null);
+
+	let deleteDialogOpen = $state(false);
+	let nodeToDelete = $state<ResolvedNode | null>(null);
+	let deleteNodeError = $state('');
+	let deleteSubmitting = $state(false);
+
+	function openDeleteDialog(node: ResolvedNode) {
+		nodeToDelete = node;
+		deleteNodeError = '';
+		deleteDialogOpen = true;
+	}
+
+	function handleDeleteNodeResult(result: {
+		data?: { deleteNode?: { success?: boolean; error?: string } };
+	}) {
+		const deleteNode = result?.data?.deleteNode;
+		if (deleteNode?.success) {
+			deleteDialogOpen = false;
+			nodeToDelete = null;
+			deleteNodeError = '';
+			selectedNodeId = null;
+		} else if (deleteNode?.error) {
+			deleteNodeError = deleteNode.error;
+		}
+	}
 
 	/** Resolve a CSS variable to rgb() – Cytoscape doesn't accept var(), only concrete colors. */
 	function resolveColor(varName: string): string {
@@ -146,7 +175,67 @@
 				effectiveRating={effectiveSkillRating}
 				treeName={data.treeName}
 				onRatingChange={onRatingChange}
+				onDelete={openDeleteDialog}
 			/>
 		</div>
 	{/if}
 </div>
+
+<Dialog.Root bind:open={deleteDialogOpen}>
+	<Dialog.Content class="sm:max-w-[425px]">
+		<form
+			method="POST"
+			action="?/deleteNode"
+			use:enhance={() => {
+				deleteSubmitting = true;
+				return async ({ result, update }) => {
+					try {
+						if (result.type === 'success' && result.data) {
+							handleDeleteNodeResult(
+								result as { data: { deleteNode?: { success?: boolean; error?: string } } }
+							);
+						}
+						await update();
+					} finally {
+						deleteSubmitting = false;
+					}
+				};
+			}}
+		>
+			{#if nodeToDelete?.id != null}
+				<input type="hidden" name="nodeId" value={nodeToDelete.id} />
+			{/if}
+			<Dialog.Header>
+				<Dialog.Title>Delete node</Dialog.Title>
+				<Dialog.Description>
+					{#if nodeToDelete}
+						Delete &quot;{nodeToDelete.label}&quot;? This will remove this node and all its children.
+					{:else}
+						This will remove the node and all its children.
+					{/if}
+				</Dialog.Description>
+			</Dialog.Header>
+			{#if deleteNodeError}
+				<p class="py-2 text-sm text-destructive">{deleteNodeError}</p>
+			{/if}
+			<Dialog.Footer>
+				<Dialog.Close
+					class={buttonVariants({ variant: 'outline' })}
+					disabled={deleteSubmitting}
+				>
+					Cancel
+				</Dialog.Close>
+				<Button type="submit" variant="destructive" disabled={deleteSubmitting}>
+					<span class="relative inline-flex items-center justify-center">
+						<span class:invisible={deleteSubmitting}>Delete</span>
+						{#if deleteSubmitting}
+							<span class="absolute inset-0 flex items-center justify-center">
+								<Spinner class="size-4" />
+							</span>
+						{/if}
+					</span>
+				</Button>
+			</Dialog.Footer>
+		</form>
+	</Dialog.Content>
+</Dialog.Root>

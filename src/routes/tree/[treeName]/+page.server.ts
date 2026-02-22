@@ -4,7 +4,8 @@ import {
 	getTreeData,
 	addChildGroup,
 	addChildSkill,
-	updateSkillRating
+	updateSkillRating,
+	deleteNode
 } from '$lib/server/db/queries';
 import { DEFAULT_USER_ID } from '$lib/server/db/default-user';
 import type { GraphStructure } from '$lib/types';
@@ -87,6 +88,21 @@ export const actions = {
 		} catch (err) {
 			const message = err instanceof Error ? err.message : 'Failed to update skill rating';
 			return fail(500, { updateSkillRating: { error: message } });
+		}
+	},
+	deleteNode: async ({ request }) => {
+		const formData = await request.formData();
+		const nodeIdRaw = formData.get('nodeId');
+		const nodeId = typeof nodeIdRaw === 'string' ? parseInt(nodeIdRaw, 10) : NaN;
+		if (Number.isNaN(nodeId)) {
+			return fail(400, { deleteNode: { error: 'Valid nodeId required' } });
+		}
+		try {
+			await deleteNode(DEFAULT_USER_ID, nodeId);
+			return { deleteNode: { success: true } };
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Failed to delete node';
+			return fail(500, { deleteNode: { error: message } });
 		}
 	}
 };

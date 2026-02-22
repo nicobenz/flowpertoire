@@ -4,6 +4,8 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as RadioGroup from '$lib/components/ui/radio-group/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 	import type { ResolvedNode, Skill } from '$lib/types';
 	import AttachPopover from './AttachPopover.svelte';
 
@@ -12,7 +14,8 @@
 		skill,
 		effectiveRating,
 		treeName,
-		onRatingChange
+		onRatingChange,
+		onDelete
 	}: {
 		node: ResolvedNode;
 		skill?: Skill;
@@ -20,6 +23,7 @@
 		effectiveRating?: number;
 		treeName?: string;
 		onRatingChange?: (skillId: number, rating: number) => void;
+		onDelete?: (node: ResolvedNode) => void;
 	} = $props();
 
 	let ratingForm = $state<HTMLFormElement | undefined>();
@@ -40,6 +44,19 @@
 		{#if node.description != null && node.description !== ''}
 			<Card.Description>{node.description}</Card.Description>
 		{/if}
+		
+			<div data-slot="card-action" class="row-span-2 self-start justify-self-end">
+				<Button
+					type="button"
+					variant="ghost"
+					size="icon-sm"
+					aria-label="Delete"
+					onclick={() => onDelete?.(node)}
+				>
+					<Trash2Icon class="size-4 text-muted-foreground" />
+				</Button>
+			</div>
+		
 	</Card.Header>
 	<Card.Content>
 		{#if skill != null}
