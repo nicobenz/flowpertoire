@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import * as Popover from '$lib/components/ui/popover/index.js';
@@ -9,6 +10,11 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 
 	let { parentNodeId, treeName }: { parentNodeId: number; treeName?: string } = $props();
+
+	let mounted = $state(false);
+	onMount(() => {
+		mounted = true;
+	});
 
 	let groupOpen = $state(false);
 	let skillOpen = $state(false);
@@ -21,6 +27,7 @@
 	const skillAction = $derived(treeName ? `/tree/${encodeURIComponent(treeName)}?/addSkill` : '#');
 </script>
 
+{#if mounted}
 <ButtonGroup.Root>
 	<Popover.Root bind:open={groupOpen}>
 		<Popover.Trigger>
@@ -123,3 +130,4 @@
 		</Popover.Content>
 	</Popover.Root>
 </ButtonGroup.Root>
+{/if}

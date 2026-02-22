@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -11,7 +13,7 @@
 	import BrainIcon from '@lucide/svelte/icons/brain';
 	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
+	import { goto, preloadData } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import { slugify } from '$lib/utils';
 	import type { TreeSummary } from '$lib/types';
@@ -47,6 +49,19 @@
 		const slug = slugify(_team.name) || String(_team.id);
 		goto(`/tree/${encodeURIComponent(slug)}`);
 	}
+
+	function preloadTree(team: { id: number; name: string }) {
+		if (!browser) return;
+		const slug = slugify(team.name) || String(team.id);
+		if (slug && slug !== currentTreeSlug) {
+			preloadData(`/tree/${encodeURIComponent(slug)}`);
+		}
+	}
+
+	let mounted = $state(false);
+	onMount(() => {
+		mounted = true;
+	});
 
 	let addTreeLabel = $state('');
 	let addTreeError = $state('');
@@ -93,6 +108,7 @@
 	}
 </script>
 
+{#if mounted}
 <Dialog.Root bind:open={addTreeDialog.open}>
 	<Dialog.Content class="sm:max-w-[425px]">
 		<form
@@ -216,6 +232,7 @@
 		</form>
 	</Dialog.Content>
 </Dialog.Root>
+{/if}
 
 <Sidebar.Menu>
 	<Sidebar.MenuItem>
@@ -253,7 +270,11 @@
 					<p class="px-2 py-1.5 text-sm text-muted-foreground">No trees yet. Add one below.</p>
 				{:else}
 					{#each teams as team (team.id)}
-						<DropdownMenu.Item onSelect={() => changeTeam(team)} class="gap-2 p-2">
+						<DropdownMenu.Item
+							onSelect={() => changeTeam(team)}
+							class="gap-2 p-2"
+							 {...(mounted ? { onmouseenter: () => preloadTree(team) } : {})}
+						>
 							<div class="flex size-6 shrink-0 items-center justify-center rounded-md border">
 								<team.logo class="size-3.5 shrink-0" />
 							</div>

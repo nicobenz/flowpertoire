@@ -151,26 +151,28 @@ export async function getTreeData(userId: number, rootNodeId: number): Promise<T
 
 	const subtreeIds = await getSubtreeNodeIds(rootNodeId);
 
-	const nodeRows = await db.select().from(nodes).where(inArray(nodes.id, subtreeIds));
+	const [nodeRows, edgeRows] = await Promise.all([
+		db.select().from(nodes).where(inArray(nodes.id, subtreeIds)),
+		db
+			.select()
+			.from(nodeEdges)
+			.where(
+				and(
+					inArray(nodeEdges.parentId, subtreeIds),
+					inArray(nodeEdges.childId, subtreeIds)
+				)
+			)
+	]);
+
 	const skillIds = nodeRows.map((r) => r.skillId).filter((id): id is number => id != null);
 	const groupIds = nodeRows.map((r) => r.groupId).filter((id): id is number => id != null);
 
-	const edgeRows = await db
-		.select()
-		.from(nodeEdges)
-		.where(
-			and(
-				inArray(nodeEdges.parentId, subtreeIds),
-				inArray(nodeEdges.childId, subtreeIds)
-			)
-		);
-
-	const skillRows =
-		skillIds.length > 0 ? await db.select().from(skills).where(inArray(skills.id, skillIds)) : [];
-	const groupRows =
+	const [skillRows, groupRows] = await Promise.all([
+		skillIds.length > 0 ? db.select().from(skills).where(inArray(skills.id, skillIds)) : [],
 		groupIds.length > 0
-			? await db.select().from(groups).where(inArray(groups.id, groupIds))
-			: [];
+			? db.select().from(groups).where(inArray(groups.id, groupIds))
+			: []
+	]);
 
 	return {
 		nodes: nodeRows.map((n) => ({
