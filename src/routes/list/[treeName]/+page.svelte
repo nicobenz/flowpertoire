@@ -1,6 +1,8 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table/index.js';
 	import type { TreeData, Node, Skill } from '$lib/types';
+	import CheckIcon from '@lucide/svelte/icons/check';
+	import XIcon from '@lucide/svelte/icons/x';
 
 	let { data } = $props();
 
@@ -10,9 +12,7 @@
 	/** Display name: root group label from treeData, or slug. */
 	const treeDisplayName = $derived.by(() => {
 		if (!treeData?.nodes?.length || !treeData?.groups?.length) return treeNameSlug ?? '';
-		const childIds = new Set(
-			(treeData.edges ?? []).map((e) => e.childId)
-		);
+		const childIds = new Set((treeData.edges ?? []).map((e) => e.childId));
 		const rootNode = (treeData.nodes as Node[]).find(
 			(n) => n.nodeType === 'group' && !childIds.has(n.id!)
 		);
@@ -46,17 +46,13 @@
 </script>
 
 <div class="space-y-4">
-	{#if treeDisplayName}
-		<h1 class="text-xl font-semibold text-foreground">List — {treeDisplayName}</h1>
-	{/if}
-
 	{#if !treeData}
-		<p class="text-muted-foreground">No tree selected or failed to load.</p>
+		<p class="text-muted-foreground">No tree selected.</p>
 	{:else if rows.length === 0}
 		<p class="text-muted-foreground">No skills in this tree yet.</p>
 	{:else}
 		<Table.Root>
-			<Table.Caption>Skills in current tree</Table.Caption>
+			<Table.Caption></Table.Caption>
 			<Table.Header>
 				<Table.Row>
 					<Table.Head>Skill</Table.Head>
@@ -71,10 +67,18 @@
 						<Table.Cell class="font-medium">{row.skill}</Table.Cell>
 						<Table.Cell>{row.rating}</Table.Cell>
 						<Table.Cell class="text-muted-foreground">
-							{row.wishlisted ? 'Yes' : 'No'}
+							{#if row.wishlisted}
+								<CheckIcon />
+							{:else}
+								<XIcon strokeWidth={1.5} />
+							{/if}
 						</Table.Cell>
 						<Table.Cell class="text-muted-foreground">
-							{row.favorited ? 'Yes' : 'No'}
+							{#if row.favorited}
+								<CheckIcon />
+							{:else}
+								<XIcon strokeWidth={1.5} />
+							{/if}
 						</Table.Cell>
 					</Table.Row>
 				{/each}
