@@ -19,6 +19,7 @@
 	import type { TreeSummary } from '$lib/types';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { addTreeDialog } from '$lib/state/state.svelte.js';
+	import { setEffectiveTreeSlug } from '$lib/state/tree-cache';
 
 	let { trees = [] }: { trees?: TreeSummary[] } = $props();
 
@@ -34,9 +35,11 @@
 		}))
 	);
 
-	// Selected tree from URL (/tree/bjj -> slug "bjj")
+	// Selected tree from URL (/tree/... or /list/... -> slug)
 	const currentTreeSlug = $derived.by(() => {
-		const match = $page.url.pathname.match(/^\/tree\/([^/]+)$/);
+		const treeMatch = $page.url.pathname.match(/^\/tree\/([^/]+)$/);
+		const listMatch = $page.url.pathname.match(/^\/list\/([^/]+)$/);
+		const match = treeMatch ?? listMatch;
 		return match ? decodeURIComponent(match[1]).toLowerCase().trim() : null;
 	});
 
@@ -47,6 +50,9 @@
 	});
 
 	const effectiveTreeSlug = $derived(currentTreeSlug ?? lastSelectedTreeSlug);
+	$effect(() => {
+		setEffectiveTreeSlug(effectiveTreeSlug);
+	});
 	const activeTeam = $derived(
 		teams.find((t) => slugify(t.name) === effectiveTreeSlug) ??
 			teams[0] ?? { name: 'Add tree', logo: PlusIcon, plan: '' }

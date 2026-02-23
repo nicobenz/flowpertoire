@@ -1,5 +1,5 @@
 <script lang="ts">
+	let { data } = $props();
 </script>
 
-<h1>List View</h1>
-<p>WIP: List view of the graph for better organisation of skills</p>
+<p class="text-muted-foreground">No trees yet. Add a tree from the Skills menu.</p>
