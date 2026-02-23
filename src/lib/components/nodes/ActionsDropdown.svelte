@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import MoreHorizontal from '@lucide/svelte/icons/more-horizontal';
 	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 	import SproutIcon from '@lucide/svelte/icons/sprout';
@@ -23,6 +22,32 @@
 		onWishlistChange?: (nodeId: number, wishlisted: boolean) => void;
 		onDelete?: (node: ResolvedNode) => void;
 	} = $props();
+
+	function persistFavorite(favorited: boolean) {
+		if (!treeName) return;
+		const formData = new FormData();
+		formData.set('nodeId', String(node.id));
+		formData.set('favorited', favorited ? 'true' : 'false');
+		fetch(`/tree/${encodeURIComponent(treeName)}?/updateNodeFavorited`, {
+			method: 'POST',
+			body: formData
+		}).then((res) => {
+			if (res.ok) clearTreeCache(treeName);
+		});
+	}
+
+	function persistWishlisted(wishlisted: boolean) {
+		if (!treeName) return;
+		const formData = new FormData();
+		formData.set('nodeId', String(node.id));
+		formData.set('wishlisted', wishlisted ? 'true' : 'false');
+		fetch(`/tree/${encodeURIComponent(treeName)}?/updateNodeWishlisted`, {
+			method: 'POST',
+			body: formData
+		}).then((res) => {
+			if (res.ok) clearTreeCache(treeName);
+		});
+	}
 </script>
 
 <DropdownMenu.Root>
@@ -34,48 +59,28 @@
 	<DropdownMenu.Content class="w-44" align="end">
 		<DropdownMenu.Label>Node Actions</DropdownMenu.Label>
 		<DropdownMenu.Group>
-			<form
-				method="POST"
-				action="?/updateNodeFavorited"
-				use:enhance={() => {
-					return async ({ result }) => {
-						if (result.type === 'success' && treeName) clearTreeCache(treeName);
-					};
+			<DropdownMenu.Item
+				onSelect={() => {
+					const next = !node.favorited;
+					onFavoriteChange?.(node.id, next);
+					persistFavorite(next);
 				}}
+				class="cursor-pointer"
 			>
-				<input type="hidden" name="nodeId" value={node.id} />
-				<button
-					type="submit"
-					name="favorited"
-					value={node.favorited ? 'false' : 'true'}
-					onclick={() => onFavoriteChange?.(node.id, !node.favorited)}
-					class="relative flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-				>
-					<StarIcon class={node.favorited ? 'fill-yellow-500 stroke-yellow-500' : ''} />
-					Favorite
-				</button>
-			</form>
-			<form
-				method="POST"
-				action="?/updateNodeWishlisted"
-				use:enhance={() => {
-					return async ({ result }) => {
-						if (result.type === 'success' && treeName) clearTreeCache(treeName);
-					};
+				<StarIcon class={node.favorited ? 'fill-yellow-500 stroke-yellow-500' : ''} />
+				Favorite
+			</DropdownMenu.Item>
+			<DropdownMenu.Item
+				onSelect={() => {
+					const next = !node.wishlisted;
+					onWishlistChange?.(node.id, next);
+					persistWishlisted(next);
 				}}
+				class="cursor-pointer"
 			>
-				<input type="hidden" name="nodeId" value={node.id} />
-				<button
-					type="submit"
-					name="wishlisted"
-					value={node.wishlisted ? 'false' : 'true'}
-					onclick={() => onWishlistChange?.(node.id, !node.wishlisted)}
-					class="relative flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-				>
-					<SproutIcon class={node.wishlisted ? 'fill-green-500 stroke-green-500' : ''} />
-					Wishlist
-				</button>
-			</form>
+				<SproutIcon class={node.wishlisted ? 'fill-green-500 stroke-green-500' : ''} />
+				Wishlist
+			</DropdownMenu.Item>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item
 				variant="destructive"
