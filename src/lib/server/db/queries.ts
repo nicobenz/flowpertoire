@@ -212,6 +212,8 @@ export async function getTreeData(userId: number, rootNodeId: number): Promise<T
 			userId: n.userId,
 			showInGraph: n.showInGraph,
 			showInPortfolioList: n.showInPortfolioList,
+			favorited: n.favorited,
+			wishlisted: n.wishlisted,
 			sortOrder: n.sortOrder,
 			createdAt: toISO(n.createdAt),
 			updatedAt: toISO(n.updatedAt)
@@ -368,4 +370,44 @@ export async function updateSkillRating(
 		.update(skills)
 		.set({ skillRating: clamped, updatedAt: new Date() })
 		.where(eq(skills.id, skillId));
+}
+
+/**
+ * Sets favorited on a node. Verifies the node belongs to the user.
+ */
+export async function updateNodeFavorited(
+	userId: number,
+	nodeId: number,
+	favorited: boolean
+): Promise<void> {
+	const [node] = await db
+		.select()
+		.from(nodes)
+		.where(and(eq(nodes.id, nodeId), eq(nodes.userId, userId)))
+		.limit(1);
+	if (!node) throw new Error('Node not found or you do not own it');
+	await db
+		.update(nodes)
+		.set({ favorited, updatedAt: new Date() })
+		.where(eq(nodes.id, nodeId));
+}
+
+/**
+ * Sets wishlisted on a node. Verifies the node belongs to the user.
+ */
+export async function updateNodeWishlisted(
+	userId: number,
+	nodeId: number,
+	wishlisted: boolean
+): Promise<void> {
+	const [node] = await db
+		.select()
+		.from(nodes)
+		.where(and(eq(nodes.id, nodeId), eq(nodes.userId, userId)))
+		.limit(1);
+	if (!node) throw new Error('Node not found or you do not own it');
+	await db
+		.update(nodes)
+		.set({ wishlisted, updatedAt: new Date() })
+		.where(eq(nodes.id, nodeId));
 }

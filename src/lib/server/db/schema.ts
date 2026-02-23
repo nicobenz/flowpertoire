@@ -63,6 +63,8 @@ export const nodes = pgTable(
 			.references(() => users.id, { onDelete: 'cascade' }),
 		showInGraph: boolean('show_in_graph').notNull().default(true),
 		showInPortfolioList: boolean('show_in_portfolio_list').notNull().default(true),
+		favorited: boolean('favorited').notNull().default(false),
+		wishlisted: boolean('wishlisted').notNull().default(false),
 		sortOrder: integer('sort_order').notNull().default(0), // sibling order (when rendered under one parent)
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()

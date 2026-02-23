@@ -26,6 +26,8 @@ interface NodeBase {
 	userId: number;
 	showInGraph: boolean;
 	showInPortfolioList: boolean;
+	favorited: boolean;
+	wishlisted: boolean;
 	sortOrder: number;
 	createdAt: string;
 	updatedAt: string;

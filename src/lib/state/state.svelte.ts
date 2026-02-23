@@ -94,6 +94,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -107,6 +109,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -120,6 +124,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -132,6 +138,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -144,6 +152,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 1,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -156,6 +166,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 2,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -365,6 +377,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -377,6 +391,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -389,6 +405,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -401,6 +419,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -413,6 +433,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -425,6 +447,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -437,6 +461,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -449,6 +475,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -461,6 +489,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -473,6 +503,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -485,6 +517,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -497,6 +531,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -509,6 +545,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -521,6 +559,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -533,6 +573,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -545,6 +587,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -557,6 +601,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -569,6 +615,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -581,6 +629,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -593,6 +643,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -605,6 +657,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -617,6 +671,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -907,6 +963,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -919,6 +977,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -931,6 +991,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 1,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -943,6 +1005,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -955,6 +1019,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 1,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -967,6 +1033,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 0,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -979,6 +1047,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 1,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -991,6 +1061,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: 2,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -1003,6 +1075,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: i,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -1015,6 +1089,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: i,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -1027,6 +1103,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: i,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -1039,6 +1117,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: i,
 					createdAt: sampleDate,
 					updatedAt: sampleDate
@@ -1051,6 +1131,8 @@ const defaultTreeData = $state<{ trees: TreeData[] }>({
 					userId: 1,
 					showInGraph: true,
 					showInPortfolioList: true,
+					favorited: false,
+					wishlisted: false,
 					sortOrder: i,
 					createdAt: sampleDate,
 					updatedAt: sampleDate

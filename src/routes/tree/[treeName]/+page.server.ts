@@ -3,6 +3,8 @@ import {
 	addChildGroup,
 	addChildSkill,
 	updateSkillRating,
+	updateNodeFavorited,
+	updateNodeWishlisted,
 	deleteNode
 } from '$lib/server/db/queries';
 import { DEFAULT_USER_ID } from '$lib/server/db/default-user';
@@ -71,19 +73,53 @@ export const actions = {
 			return fail(500, { updateSkillRating: { error: message } });
 		}
 	},
-	deleteNode: async ({ request }) => {
-		const formData = await request.formData();
-		const nodeIdRaw = formData.get('nodeId');
-		const nodeId = typeof nodeIdRaw === 'string' ? parseInt(nodeIdRaw, 10) : NaN;
-		if (Number.isNaN(nodeId)) {
-			return fail(400, { deleteNode: { error: 'Valid nodeId required' } });
+		updateNodeFavorited: async ({ request }) => {
+			const formData = await request.formData();
+			const nodeIdRaw = formData.get('nodeId');
+			const favoritedRaw = formData.get('favorited');
+			const nodeId = typeof nodeIdRaw === 'string' ? parseInt(nodeIdRaw, 10) : NaN;
+			const favorited = favoritedRaw === 'true' || favoritedRaw === '1';
+			if (Number.isNaN(nodeId)) {
+				return fail(400, { updateNodeFavorited: { error: 'Valid nodeId required' } });
+			}
+			try {
+				await updateNodeFavorited(DEFAULT_USER_ID, nodeId, favorited);
+				return { updateNodeFavorited: { success: true } };
+			} catch (err) {
+				const message = err instanceof Error ? err.message : 'Failed to update favorited';
+				return fail(500, { updateNodeFavorited: { error: message } });
+			}
+		},
+		updateNodeWishlisted: async ({ request }) => {
+			const formData = await request.formData();
+			const nodeIdRaw = formData.get('nodeId');
+			const wishlistedRaw = formData.get('wishlisted');
+			const nodeId = typeof nodeIdRaw === 'string' ? parseInt(nodeIdRaw, 10) : NaN;
+			const wishlisted = wishlistedRaw === 'true' || wishlistedRaw === '1';
+			if (Number.isNaN(nodeId)) {
+				return fail(400, { updateNodeWishlisted: { error: 'Valid nodeId required' } });
+			}
+			try {
+				await updateNodeWishlisted(DEFAULT_USER_ID, nodeId, wishlisted);
+				return { updateNodeWishlisted: { success: true } };
+			} catch (err) {
+				const message = err instanceof Error ? err.message : 'Failed to update wishlisted';
+				return fail(500, { updateNodeWishlisted: { error: message } });
+			}
+		},
+		deleteNode: async ({ request }) => {
+			const formData = await request.formData();
+			const nodeIdRaw = formData.get('nodeId');
+			const nodeId = typeof nodeIdRaw === 'string' ? parseInt(nodeIdRaw, 10) : NaN;
+			if (Number.isNaN(nodeId)) {
+				return fail(400, { deleteNode: { error: 'Valid nodeId required' } });
+			}
+			try {
+				await deleteNode(DEFAULT_USER_ID, nodeId);
+				return { deleteNode: { success: true } };
+			} catch (err) {
+				const message = err instanceof Error ? err.message : 'Failed to delete node';
+				return fail(500, { deleteNode: { error: message } });
+			}
 		}
-		try {
-			await deleteNode(DEFAULT_USER_ID, nodeId);
-			return { deleteNode: { success: true } };
-		} catch (err) {
-			const message = err instanceof Error ? err.message : 'Failed to delete node';
-			return fail(500, { deleteNode: { error: message } });
-		}
-	}
-};
+	};
