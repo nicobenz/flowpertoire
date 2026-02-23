@@ -5,10 +5,10 @@
 	import * as RadioGroup from '$lib/components/ui/radio-group/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 	import type { ResolvedNode, Skill } from '$lib/types';
 	import { clearTreeCache } from '$lib/state/tree-cache';
 	import AttachPopover from './AttachPopover.svelte';
+	import ActionsDropdown from './ActionsDropdown.svelte';
 
 	let {
 		node,
@@ -16,6 +16,8 @@
 		effectiveRating,
 		treeName,
 		onRatingChange,
+		onFavoriteChange,
+		onWishlistChange,
 		onDelete
 	}: {
 		node: ResolvedNode;
@@ -24,6 +26,8 @@
 		effectiveRating?: number;
 		treeName?: string;
 		onRatingChange?: (skillId: number, rating: number) => void;
+		onFavoriteChange?: (nodeId: number, favorited: boolean) => void;
+		onWishlistChange?: (nodeId: number, wishlisted: boolean) => void;
 		onDelete?: (node: ResolvedNode) => void;
 	} = $props();
 
@@ -41,23 +45,21 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{node.label}</Card.Title>
+		<Card.Title>
+			{node.label}
+		</Card.Title>
+		<Card.Action>
+			<ActionsDropdown
+				{node}
+				{treeName}
+				{onFavoriteChange}
+				{onWishlistChange}
+				{onDelete}
+			/>
+		</Card.Action>
 		{#if node.description != null && node.description !== ''}
 			<Card.Description>{node.description}</Card.Description>
 		{/if}
-		
-			<div data-slot="card-action" class="row-span-2 self-start justify-self-end">
-				<Button
-					type="button"
-					variant="ghost"
-					size="icon-sm"
-					aria-label="Delete"
-					onclick={() => onDelete?.(node)}
-				>
-					<Trash2Icon class="size-4 text-muted-foreground" />
-				</Button>
-			</div>
-		
 	</Card.Header>
 	<Card.Content>
 		{#if skill != null}
@@ -126,6 +128,6 @@
 		{/if}
 	</Card.Content>
 	<Card.Footer>
-		<AttachPopover parentNodeId={node.id} treeName={treeName} />
+		<AttachPopover parentNodeId={node.id} {treeName} />
 	</Card.Footer>
 </Card.Root>

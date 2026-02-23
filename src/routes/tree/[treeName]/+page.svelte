@@ -91,6 +91,9 @@
 
 	// Optimistic rating overrides: drive graph fill from UI without refetch (no full redraw)
 	let ratingOverrides = $state<Record<number, number>>({});
+	let favoriteOverrides = $state<Record<number, boolean>>({});
+	let wishlistOverrides = $state<Record<number, boolean>>({});
+
 	const treeDataForFill = $derived.by(() => {
 		if (!treeData) return null;
 		const overrides = ratingOverrides;
@@ -107,6 +110,14 @@
 
 	function onRatingChange(skillId: number, rating: number): void {
 		ratingOverrides = { ...ratingOverrides, [skillId]: rating };
+	}
+
+	function onFavoriteChange(nodeId: number, favorited: boolean): void {
+		favoriteOverrides = { ...favoriteOverrides, [nodeId]: favorited };
+	}
+
+	function onWishlistChange(nodeId: number, wishlisted: boolean): void {
+		wishlistOverrides = { ...wishlistOverrides, [nodeId]: wishlisted };
 	}
 
 	// Create/destroy graph when container is available; update selection via callback
@@ -140,14 +151,19 @@
 		graph.updateFillPercents(treeDataForFill);
 	});
 
-	// Selected node resolved for SkillOverview (reactive to rating overrides for aggregate)
+	// Selected node resolved for SkillOverview (reactive to rating + favorite/wishlist overrides)
 	const selectedResolvedNode = $derived.by((): ResolvedNode | undefined => {
 		if (selectedNodeId == null) return undefined;
 		if (!treeData?.nodes?.length) return undefined;
 		const node = treeData.nodes.find((n) => n.id === selectedNodeId);
 		if (!node || node.id == null) return undefined;
 		const dataForResolve = treeDataForFill ?? treeData;
-		return resolveNode(dataForResolve, node as Node);
+		const resolved = resolveNode(dataForResolve, node as Node);
+		return {
+			...resolved,
+			favorited: favoriteOverrides[resolved.id] ?? resolved.favorited,
+			wishlisted: wishlistOverrides[resolved.id] ?? resolved.wishlisted
+		};
 	});
 
 	const selectedSkill = $derived.by(() => {
@@ -176,6 +192,8 @@
 				effectiveRating={effectiveSkillRating}
 				treeName={data.treeName}
 				onRatingChange={onRatingChange}
+				onFavoriteChange={onFavoriteChange}
+				onWishlistChange={onWishlistChange}
 				onDelete={openDeleteDialog}
 			/>
 		</div>
