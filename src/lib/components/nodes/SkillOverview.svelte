@@ -7,6 +7,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 	import type { ResolvedNode, Skill } from '$lib/types';
+	import { clearTreeCache } from '$lib/state/tree-cache';
 	import AttachPopover from './AttachPopover.svelte';
 
 	let {
@@ -66,7 +67,9 @@
 				action={updateRatingAction}
 				use:enhance={() => {
 					// No invalidateAll: fill is driven by onRatingChange + ratingOverrides (no full graph redraw)
-					return async () => {};
+					return async ({ result }) => {
+						if (result.type === 'success' && treeName) clearTreeCache(treeName);
+					};
 				}}
 			>
 				<input type="hidden" name="skillId" value={skill.id} />

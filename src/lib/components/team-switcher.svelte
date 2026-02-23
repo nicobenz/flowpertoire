@@ -40,8 +40,15 @@
 		return match ? decodeURIComponent(match[1]).toLowerCase().trim() : null;
 	});
 
+	// Persist last selected tree so sidebar shows it when on non-tree routes (e.g. /settings)
+	let lastSelectedTreeSlug = $state<string | null>(null);
+	$effect(() => {
+		if (currentTreeSlug) lastSelectedTreeSlug = currentTreeSlug;
+	});
+
+	const effectiveTreeSlug = $derived(currentTreeSlug ?? lastSelectedTreeSlug);
 	const activeTeam = $derived(
-		teams.find((t) => slugify(t.name) === currentTreeSlug) ??
+		teams.find((t) => slugify(t.name) === effectiveTreeSlug) ??
 			teams[0] ?? { name: 'Add tree', logo: PlusIcon, plan: '' }
 	);
 
@@ -53,7 +60,7 @@
 	function preloadTree(team: { id: number; name: string }) {
 		if (!browser) return;
 		const slug = slugify(team.name) || String(team.id);
-		if (slug && slug !== currentTreeSlug) {
+		if (slug && slug !== effectiveTreeSlug) {
 			preloadData(`/tree/${encodeURIComponent(slug)}`);
 		}
 	}

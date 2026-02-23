@@ -1,35 +1,16 @@
 import { fail, redirect } from '@sveltejs/kit';
 import {
-	getRootTreeIdBySlug,
-	getTreeData,
 	addChildGroup,
 	addChildSkill,
 	updateSkillRating,
 	deleteNode
 } from '$lib/server/db/queries';
 import { DEFAULT_USER_ID } from '$lib/server/db/default-user';
-import type { GraphStructure } from '$lib/types';
 
 export async function load({ params }) {
 	const treeName = params.treeName;
 	if (!treeName) throw redirect(302, '/tree');
-
-	const rootId = await getRootTreeIdBySlug(DEFAULT_USER_ID, treeName);
-	if (rootId == null) throw redirect(302, '/tree');
-
-	const treeData = await getTreeData(DEFAULT_USER_ID, rootId);
-	if (!treeData) throw redirect(302, '/tree');
-
-	const graphStructure: GraphStructure = {
-		nodes: treeData.nodes,
-		edges: treeData.edges,
-		groups: treeData.groups,
-		skills: treeData.skills
-			.filter((s): s is typeof s & { id: number } => s.id != null)
-			.map((s) => ({ id: s.id, title: s.title }))
-	};
-
-	return { treeData, graphStructure, treeName };
+	return { treeName };
 }
 
 export const actions = {

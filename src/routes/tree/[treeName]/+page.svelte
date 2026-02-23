@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { clearTreeCache } from '$lib/state/tree-cache';
 	import {
 		TreeGraph,
 		type TreeGraphTheme,
@@ -194,6 +195,7 @@
 							handleDeleteNodeResult(
 								result as { data: { deleteNode?: { success?: boolean; error?: string } } }
 							);
+							clearTreeCache(data.treeName);
 						}
 						await update();
 					} finally {

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { clearTreeCache } from '$lib/state/tree-cache';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -43,7 +44,8 @@
 					return async ({ result }) => {
 						if (result.type !== 'success') return;
 						const data = result.data as { addGroup?: { success?: boolean } } | undefined;
-						if (data?.addGroup?.success) {
+						if (data?.addGroup?.success && treeName) {
+							clearTreeCache(treeName);
 							groupName = '';
 							groupDesc = '';
 							groupOpen = false;
@@ -98,7 +100,8 @@
 					return async ({ result }) => {
 						if (result.type !== 'success') return;
 						const data = result.data as { addSkill?: { success?: boolean } } | undefined;
-						if (data?.addSkill?.success) {
+						if (data?.addSkill?.success && treeName) {
+							clearTreeCache(treeName);
 							skillName = '';
 							skillOpen = false;
 							await invalidateAll();
