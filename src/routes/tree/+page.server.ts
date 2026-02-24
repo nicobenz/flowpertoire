@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { createRootTree, deleteRootTree, getRootTrees } from '$lib/server/db/queries';
+import { createRootTree, deleteNode, getRootTrees } from '$lib/server/db/queries';
 import { DEFAULT_USER_ID } from '$lib/server/db/default-user';
 import { slugify } from '$lib/utils';
 
@@ -39,7 +39,7 @@ export const actions = {
 			return fail(400, { deleteTree: { error: 'Invalid tree' } });
 		}
 		try {
-			await deleteRootTree(DEFAULT_USER_ID, id);
+			await deleteNode(DEFAULT_USER_ID, id);
 			return { deleteTree: { success: true } };
 		} catch (err) {
 			const message = err instanceof Error ? err.message : 'Failed to delete tree';

@@ -109,37 +109,9 @@ async function getSubtreeNodeIds(rootId: number): Promise<number[]> {
 }
 
 /**
- * Deletes a root tree and its entire subtree (nodes, edges, and referenced skills/groups).
- * Verifies the root node belongs to the user. Throws if not found or not owner.
- */
-export async function deleteRootTree(userId: number, rootNodeId: number): Promise<void> {
-	const [root] = await db
-		.select()
-		.from(nodes)
-		.where(and(eq(nodes.id, rootNodeId), eq(nodes.userId, userId), eq(nodes.nodeType, 'group')))
-		.limit(1);
-	if (!root) throw new Error('Tree not found or you do not own it');
-
-	const subtreeIds = await getSubtreeNodeIds(rootNodeId);
-	const nodeRows = await db
-		.select({ id: nodes.id, skillId: nodes.skillId, groupId: nodes.groupId })
-		.from(nodes)
-		.where(inArray(nodes.id, subtreeIds));
-
-	const skillIds = nodeRows.map((r) => r.skillId).filter((id): id is number => id != null);
-	const groupIds = nodeRows.map((r) => r.groupId).filter((id): id is number => id != null);
-
-	await db
-		.delete(nodeEdges)
-		.where(or(inArray(nodeEdges.parentId, subtreeIds), inArray(nodeEdges.childId, subtreeIds)));
-	await db.delete(nodes).where(inArray(nodes.id, subtreeIds));
-	if (skillIds.length > 0) await db.delete(skills).where(inArray(skills.id, skillIds));
-	if (groupIds.length > 0) await db.delete(groups).where(inArray(groups.id, groupIds));
-}
-
-/**
- * Deletes a node and its entire subtree. Verifies the node belongs to the user.
- * Throws if not found or not owner.
+ * Deletes a node and its entire subtree (nodes, edges, and referenced skills/groups).
+ * Verifies the node belongs to the user. Throws if not found or not owner.
+ * Use for both subgraph deletion and whole-tree deletion (root node id = tree id).
  */
 export async function deleteNode(userId: number, nodeId: number): Promise<void> {
 	const [node] = await db
