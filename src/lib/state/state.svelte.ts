@@ -2,6 +2,33 @@ import type { TreeData, GraphStructure } from '$lib/types';
 
 const sampleDate = '2025-01-01T00:00:00.000Z';
 
+export const selection = $state({ template: 'empty' });
+export const templateSelection = $state({
+	templates: [
+		{
+			title: 'Empty',
+			desc: 'A clean slate for your own imagination.',
+			value: 'empty',
+			labelId: 'empty-label',
+			placeholder: ''
+		},
+		{
+			title: 'Hula Hoop',
+			desc: 'The basics of Hula Hoop dance.',
+			value: 'hoop',
+			labelId: 'hoop-label',
+			placeholder: 'Hula Hoop'
+		},
+		{
+			title: 'Poledance',
+			desc: 'Basics of Poledance. Slay queen.',
+			value: 'pole',
+			labelId: 'pole-label',
+			placeholder: 'Poledance'
+		}
+	]
+});
+
 export const user = $state({
 	firstName: 'Emmy',
 	lastName: 'Example',

@@ -5,11 +5,18 @@
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { enhance } from '$app/forms';
-	import { addTreeDialog } from '$lib/state/state.svelte.js';
+	import { addTreeDialog, selection, templateSelection } from '$lib/state/state.svelte.js';
+	import TemplateChoiceCard from './TemplateChoiceCard.svelte';
 
 	let label = $state('');
 	let error = $state('');
 	let submitting = $state(false);
+
+	$effect(() => {
+		const template = selection.template;
+		const suggested = templateSelection.templates.find((x) => x.value === template);
+		label = suggested?.placeholder ?? suggested?.title ?? '';
+	});
 
 	function handleResult(result: {
 		data?: { createTree?: { success?: boolean; error?: string; treeId?: number } };
@@ -54,8 +61,11 @@
 		>
 			<Dialog.Header>
 				<Dialog.Title>Add tree</Dialog.Title>
-				<Dialog.Description>Create a new skill tree (root group).</Dialog.Description>
+				<Dialog.Description
+					>Create an empty skill tree or one with an expandable template.</Dialog.Description
+				>
 			</Dialog.Header>
+			<TemplateChoiceCard />
 			<div class="grid gap-4 py-4">
 				<div class="grid gap-2">
 					<Label for="tree-label">Name</Label>
