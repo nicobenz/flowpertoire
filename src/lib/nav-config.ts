@@ -48,5 +48,8 @@ export function getProjectLabel(pathname: string): string {
 	const project = projects.find(
 		(p) => p.url === pathname || (p.url !== '/' && pathname.startsWith(p.url + '/'))
 	);
-	return project?.name ?? (pathname || 'Home');
+	if (project) return project.name;
+	// /list and /list/... belong to Skills (same as /tree)
+	if (pathname === '/list' || pathname.startsWith('/list/')) return 'Skills';
+	return pathname || 'Home';
 }

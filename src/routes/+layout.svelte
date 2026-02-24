@@ -11,26 +11,39 @@
 	import {
 		getLastTreeSlug,
 		getCachedTree,
-		prefetchTreeData
+		prefetchTreeData,
+		effectiveTreeSlug
 	} from '$lib/state/tree-cache';
 
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	let { data, children } = $props();
 
-	const currentLabel = $derived(getProjectLabel($page.url.pathname));
+	// Use the same selection as team-switcher (URL or last selected tree)
+	let effectiveSlug = $state<string | null>(browser ? getLastTreeSlug() : null);
+	$effect(() => {
+		return effectiveTreeSlug.subscribe((slug) => {
+			effectiveSlug = slug;
+		});
+	});
+
+	const breadcrumbLabel = $derived.by(() => {
+		const slug = effectiveSlug ?? (browser ? getLastTreeSlug() : null);
+		if (!slug || !data.trees?.length) return 'Flowpertoire';
+		const trees = data.trees as { id: number; name: string }[];
+		const tree = trees.find((t) => (slugify(t.name) || String(t.id)) === slug);
+		return tree?.name ?? 'Flowpertoire';
+	});
+	const routeLabel = $derived(getProjectLabel($page.url.pathname));
 
 	// Pre-fetch the default tree on first visit so /tree and /list load without delay
 	onMount(() => {
 		if (!browser || !data.trees?.length) return;
 		const trees = data.trees as { id: number; name: string }[];
 		const lastSlug = getLastTreeSlug();
-		const slugInTrees = (s: string) =>
-			trees.some((t) => (slugify(t.name) || String(t.id)) === s);
+		const slugInTrees = (s: string) => trees.some((t) => (slugify(t.name) || String(t.id)) === s);
 		const slugToPrefetch =
-			lastSlug && slugInTrees(lastSlug)
-				? lastSlug
-				: slugify(trees[0].name) || String(trees[0].id);
+			lastSlug && slugInTrees(lastSlug) ? lastSlug : slugify(trees[0].name) || String(trees[0].id);
 		if (slugToPrefetch && !getCachedTree(slugToPrefetch)) {
 			prefetchTreeData(slugToPrefetch);
 		}
@@ -53,11 +66,11 @@
 				<Breadcrumb.Root>
 					<Breadcrumb.List>
 						<Breadcrumb.Item class="hidden md:block">
-							<Breadcrumb.Link href="/">Flowpertoire</Breadcrumb.Link>
+							<Breadcrumb.Link>{breadcrumbLabel}</Breadcrumb.Link>
 						</Breadcrumb.Item>
 						<Breadcrumb.Separator class="hidden md:block" />
 						<Breadcrumb.Item>
-							<Breadcrumb.Page>{currentLabel}</Breadcrumb.Page>
+							<Breadcrumb.Page>{routeLabel}</Breadcrumb.Page>
 						</Breadcrumb.Item>
 					</Breadcrumb.List>
 				</Breadcrumb.Root>
