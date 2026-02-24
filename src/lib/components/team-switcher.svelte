@@ -3,23 +3,20 @@
 	import { browser } from '$app/environment';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import BrainIcon from '@lucide/svelte/icons/brain';
 	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 	import { page } from '$app/stores';
 	import { goto, preloadData } from '$app/navigation';
-	import { enhance } from '$app/forms';
 	import { slugify } from '$lib/utils';
 	import type { TreeSummary } from '$lib/types';
-	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { addTreeDialog } from '$lib/state/state.svelte.js';
 	import { setEffectiveTreeSlug, getLastTreeSlug, setLastTreeSlug } from '$lib/state/tree-cache';
+	import AddTree from './tree/AddTree.svelte';
+	import DeleteTree from './tree/DeleteTree.svelte';
 
 	let { trees = [] }: { trees?: TreeSummary[] } = $props();
 
@@ -77,175 +74,29 @@
 		mounted = true;
 	});
 
-	let addTreeLabel = $state('');
-	let addTreeError = $state('');
-	let createSubmitting = $state(false);
-
-	function handleAddTreeResult(result: {
-		data?: { createTree?: { success?: boolean; error?: string; treeId?: number } };
-	}) {
-		const createTree = result?.data?.createTree;
-		if (createTree?.success) {
-			addTreeDialog.open = false;
-			addTreeLabel = '';
-			addTreeError = '';
-			// Server redirects to the new tree on success, so no client goto needed
-		} else if (createTree?.error) {
-			addTreeError = createTree.error;
-		}
-	}
-
 	let deleteDialogOpen = $state(false);
 	let treeToDelete = $state<{ id: number; name: string } | null>(null);
-	let deleteTreeError = $state('');
 	let dropdownOpen = $state(false);
-	let deleteSubmitting = $state(false);
 
 	function openDeleteDialog(team: { id: number; name: string }) {
 		treeToDelete = team;
-		deleteTreeError = '';
 		deleteDialogOpen = true;
 	}
 
-	function handleDeleteTreeResult(result: {
-		data?: { deleteTree?: { success?: boolean; error?: string } };
-	}) {
-		const deleteTree = result?.data?.deleteTree;
-		if (deleteTree?.success) {
-			deleteDialogOpen = false;
-			dropdownOpen = false;
-			treeToDelete = null;
-			deleteTreeError = '';
-		} else if (deleteTree?.error) {
-			deleteTreeError = deleteTree.error;
-		}
+	function onDeleteSuccess() {
+		deleteDialogOpen = false;
+		dropdownOpen = false;
+		treeToDelete = null;
 	}
 </script>
 
 {#if mounted}
-<Dialog.Root bind:open={addTreeDialog.open}>
-	<Dialog.Content class="sm:max-w-[425px]">
-		<form
-			method="POST"
-			action="/tree?/createTree"
-			use:enhance={() => {
-				createSubmitting = true;
-				return async ({ result, update }) => {
-					try {
-						if (result.type === 'redirect') {
-							// Server redirected to the new tree; close dialog and clear form before navigation
-							addTreeDialog.open = false;
-							addTreeLabel = '';
-							addTreeError = '';
-						} else if (result.type === 'success' && result.data) {
-							handleAddTreeResult(
-								result as {
-									data: { createTree?: { success?: boolean; error?: string; treeId?: number } };
-								}
-							);
-						}
-						await update();
-					} finally {
-						createSubmitting = false;
-					}
-				};
-			}}
-		>
-			<Dialog.Header>
-				<Dialog.Title>Add tree</Dialog.Title>
-				<Dialog.Description>Create a new skill tree (root group).</Dialog.Description>
-			</Dialog.Header>
-			<div class="grid gap-4 py-4">
-				<div class="grid gap-2">
-					<Label for="tree-label">Name</Label>
-					<Input
-						id="tree-label"
-						name="label"
-						type="text"
-						placeholder="e.g. Calisthenics"
-						required
-						bind:value={addTreeLabel}
-						aria-invalid={!!addTreeError}
-					/>
-					{#if addTreeError}
-						<p class="text-sm text-destructive">{addTreeError}</p>
-					{/if}
-				</div>
-			</div>
-			<Dialog.Footer>
-				<Dialog.Close class={buttonVariants({ variant: 'outline' })} disabled={createSubmitting}
-					>Cancel</Dialog.Close
-				>
-				<Button type="submit" disabled={createSubmitting}>
-					<span class="relative inline-flex items-center justify-center">
-						<span class:invisible={createSubmitting}>Create</span>
-						{#if createSubmitting}
-							<span class="absolute inset-0 flex items-center justify-center">
-								<Spinner class="size-4" />
-							</span>
-						{/if}
-					</span>
-				</Button>
-			</Dialog.Footer>
-		</form>
-	</Dialog.Content>
-</Dialog.Root>
-
-<Dialog.Root bind:open={deleteDialogOpen}>
-	<Dialog.Content class="sm:max-w-[425px]">
-		<form
-			method="POST"
-			action="/tree?/deleteTree"
-			use:enhance={() => {
-				deleteSubmitting = true;
-				return async ({ result, update }) => {
-					try {
-						if (result.type === 'success' && result.data) {
-							handleDeleteTreeResult(
-								result as { data: { deleteTree?: { success?: boolean; error?: string } } }
-							);
-						}
-						await update();
-					} finally {
-						deleteSubmitting = false;
-					}
-				};
-			}}
-		>
-			{#if treeToDelete}
-				<input type="hidden" name="treeId" value={treeToDelete.id} />
-			{/if}
-			<Dialog.Header>
-				<Dialog.Title>Delete tree</Dialog.Title>
-				<Dialog.Description>
-					{#if treeToDelete}
-						Delete &quot;{treeToDelete.name}&quot;? This will remove the tree and all its nodes.
-					{:else}
-						This will remove the tree and all its nodes.
-					{/if}
-				</Dialog.Description>
-			</Dialog.Header>
-			{#if deleteTreeError}
-				<p class="py-2 text-sm text-destructive">{deleteTreeError}</p>
-			{/if}
-			<Dialog.Footer>
-				<Dialog.Close class={buttonVariants({ variant: 'outline' })} disabled={deleteSubmitting}
-					>Cancel</Dialog.Close
-				>
-				<Button type="submit" variant="destructive" disabled={deleteSubmitting}>
-					<span class="relative inline-flex items-center justify-center">
-						<span class:invisible={deleteSubmitting}>Delete</span>
-						{#if deleteSubmitting}
-							<span class="absolute inset-0 flex items-center justify-center">
-								<Spinner class="size-4" />
-							</span>
-						{/if}
-					</span>
-				</Button>
-			</Dialog.Footer>
-		</form>
-	</Dialog.Content>
-</Dialog.Root>
+	<AddTree />
+	<DeleteTree
+		bind:open={deleteDialogOpen}
+		tree={treeToDelete}
+		onSuccess={onDeleteSuccess}
+	/>
 {/if}
 
 <Sidebar.Menu>
@@ -287,7 +138,7 @@
 						<DropdownMenu.Item
 							onSelect={() => changeTeam(team)}
 							class="gap-2 p-2"
-							 {...(mounted ? { onmouseenter: () => preloadTree(team) } : {})}
+							{...mounted ? { onmouseenter: () => preloadTree(team) } : {}}
 						>
 							<div class="flex size-6 shrink-0 items-center justify-center rounded-md border">
 								<team.logo class="size-3.5 shrink-0" />
