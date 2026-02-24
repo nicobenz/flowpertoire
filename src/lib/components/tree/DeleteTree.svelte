@@ -3,6 +3,8 @@
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { enhance } from '$app/forms';
+	import { clearTreeCache } from '$lib/state/tree-cache';
+	import { slugify } from '$lib/utils';
 
 	interface Props {
 		open: boolean;
@@ -23,6 +25,10 @@
 	}) {
 		const deleteTree = result?.data?.deleteTree;
 		if (deleteTree?.success) {
+			if (tree) {
+				const slug = slugify(tree.name) || String(tree.id);
+				clearTreeCache(slug);
+			}
 			open = false;
 			error = '';
 			onSuccess?.();
