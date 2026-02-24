@@ -56,7 +56,7 @@ export const celebrateSettings = $state({
 });
 
 /** Shared state so the add-tree dialog can be opened from the sidebar or from the empty tree page. */
-export const addTreeDialog = $state({ open: false });
+export const addTreeDialog = $state({ open: false, creating: false });
 
 const defaultTreeData = $state<{ trees: TreeData[] }>({
 	trees: [

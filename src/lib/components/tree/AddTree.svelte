@@ -39,6 +39,7 @@
 			action="/tree?/createTree"
 			use:enhance={() => {
 				submitting = true;
+				addTreeDialog.creating = true;
 				return async ({ result, update }) => {
 					try {
 						if (result.type === 'redirect') {
@@ -55,6 +56,7 @@
 						await update();
 					} finally {
 						submitting = false;
+						addTreeDialog.creating = false;
 					}
 				};
 			}}
