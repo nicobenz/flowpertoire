@@ -19,7 +19,7 @@
 	import type { TreeSummary } from '$lib/types';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { addTreeDialog } from '$lib/state/state.svelte.js';
-	import { setEffectiveTreeSlug } from '$lib/state/tree-cache';
+	import { setEffectiveTreeSlug, getLastTreeSlug, setLastTreeSlug } from '$lib/state/tree-cache';
 
 	let { trees = [] }: { trees?: TreeSummary[] } = $props();
 
@@ -44,7 +44,7 @@
 	});
 
 	// Persist last selected tree so sidebar shows it when on non-tree routes (e.g. /settings)
-	let lastSelectedTreeSlug = $state<string | null>(null);
+	let lastSelectedTreeSlug = $state<string | null>(browser ? getLastTreeSlug() : null);
 	$effect(() => {
 		if (currentTreeSlug) lastSelectedTreeSlug = currentTreeSlug;
 	});
@@ -52,6 +52,7 @@
 	const effectiveTreeSlug = $derived(currentTreeSlug ?? lastSelectedTreeSlug);
 	$effect(() => {
 		setEffectiveTreeSlug(effectiveTreeSlug);
+		if (effectiveTreeSlug) setLastTreeSlug(effectiveTreeSlug);
 	});
 	const activeTeam = $derived(
 		teams.find((t) => slugify(t.name) === effectiveTreeSlug) ??

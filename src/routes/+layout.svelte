@@ -1,16 +1,40 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import { getProjectLabel } from '$lib/nav-config.js';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import { slugify } from '$lib/utils';
+	import {
+		getLastTreeSlug,
+		getCachedTree,
+		prefetchTreeData
+	} from '$lib/state/tree-cache';
 
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	let { data, children } = $props();
 
 	const currentLabel = $derived(getProjectLabel($page.url.pathname));
+
+	// Pre-fetch the default tree on first visit so /tree and /list load without delay
+	onMount(() => {
+		if (!browser || !data.trees?.length) return;
+		const trees = data.trees as { id: number; name: string }[];
+		const lastSlug = getLastTreeSlug();
+		const slugInTrees = (s: string) =>
+			trees.some((t) => (slugify(t.name) || String(t.id)) === s);
+		const slugToPrefetch =
+			lastSlug && slugInTrees(lastSlug)
+				? lastSlug
+				: slugify(trees[0].name) || String(trees[0].id);
+		if (slugToPrefetch && !getCachedTree(slugToPrefetch)) {
+			prefetchTreeData(slugToPrefetch);
+		}
+	});
 </script>
 
 <svelte:head>
