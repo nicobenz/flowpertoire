@@ -49,13 +49,7 @@
 			{node.label}
 		</Card.Title>
 		<Card.Action>
-			<ActionsDropdown
-				{node}
-				{treeName}
-				{onFavoriteChange}
-				{onWishlistChange}
-				{onDelete}
-			/>
+			<ActionsDropdown {node} {treeName} {onFavoriteChange} {onWishlistChange} {onDelete} />
 		</Card.Action>
 		{#if node.description != null && node.description !== ''}
 			<Card.Description>{node.description}</Card.Description>
@@ -127,7 +121,9 @@
 			</p>
 		{/if}
 	</Card.Content>
-	<Card.Footer>
-		<AttachPopover parentNodeId={node.id} {treeName} />
-	</Card.Footer>
+	{#if node.nodeType == 'group'}
+		<Card.Footer>
+			<AttachPopover parentNodeId={node.id} {treeName} />
+		</Card.Footer>
+	{/if}
 </Card.Root>
